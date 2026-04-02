@@ -16,7 +16,7 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: true,
+    requireEmailVerification: false, // TODO: aktifkan sebelum production (butuh domain terverifikasi di Resend)
     minPasswordLength: 8,
   },
   emailVerification: {
