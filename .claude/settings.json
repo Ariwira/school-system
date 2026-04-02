@@ -1,0 +1,24 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd \"D:/Download/PROJECT/school-system\" && case \"$CLAUDE_TOOL_INPUT_FILE_PATH\" in *.ts|*.tsx) pnpm tsc --noEmit 2>&1 | head -30 ;; esac"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd \"D:/Download/PROJECT/school-system\" && case \"$CLAUDE_TOOL_INPUT_FILE_PATH\" in *lib/db/schema*) echo \"[REMINDER] Schema diubah — jalankan: pnpm db:generate && pnpm db:migrate\" ;; esac"
+          }
+        ]
+      }
+    ]
+  }
+}
