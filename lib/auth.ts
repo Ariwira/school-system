@@ -11,11 +11,8 @@ export const auth = betterAuth({
   appName: 'School ERP System',
   database: drizzleAdapter(db, {
     provider: 'pg',
-    schema: {
-      user: schema.users,
-    },
+    schema,
     usePlural: true,
-    camelCase: true,
   }),
   emailAndPassword: {
     enabled: true,
