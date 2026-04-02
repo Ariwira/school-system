@@ -5,7 +5,7 @@ import { users } from './users'
 
 export const staffs = pgTable('staffs', {
   id: uuid('id').primaryKey().defaultRandom(),
-  userId: text('user_id').references(() => users.id, { onDelete: 'set null' }).unique(),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'set null' }).unique(),
   instituteId: uuid('institute_id').notNull().references(() => institutes.id, { onDelete: 'restrict' }),
   name: text('name').notNull(),
   nik: text('nik').unique(),
