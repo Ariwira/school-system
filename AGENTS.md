@@ -14,8 +14,26 @@ This version has breaking changes — APIs, conventions, and file structure may 
    gh issue view <nomor> --repo Ariwira/school-system
    ```
 2. **Cek dependency issue sudah closed** sebelum mulai mengerjakan
-3. **Baca file yang ada** sebelum membuat file baru — jangan duplikasi
-4. **Cek schema** di `lib/db/schema/` sebelum menulis query Drizzle
+3. **Buat branch baru dari `main`** — WAJIB, jangan langsung commit ke `main`:
+   ```bash
+   git checkout main && git pull origin main
+   git checkout -b feat/issue-<nomor>-<slug>
+   ```
+4. **Baca file yang ada** sebelum membuat file baru — jangan duplikasi
+5. **Cek schema** di `lib/db/schema/` sebelum menulis query Drizzle
+
+## Setelah Selesai Menulis Kode
+
+1. **Commit** semua perubahan ke branch yang sudah dibuat
+2. **Push branch** ke remote:
+   ```bash
+   git push -u origin feat/issue-<nomor>-<slug>
+   ```
+3. **Buat PR** ke `main` dengan format:
+   ```bash
+   gh pr create --title "feat: <deskripsi singkat> (#<nomor>)" --body "Closes #<nomor>"
+   ```
+4. **Jangan merge sendiri** — informasikan ke user bahwa PR sudah dibuat dan siap di-review
 
 ## Aturan Teknis
 
