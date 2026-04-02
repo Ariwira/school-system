@@ -8,7 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { buttonVariants } from '@/components/ui/button'
 
 export default function CheckEmailPage() {
   return (
@@ -32,7 +31,7 @@ export default function CheckEmailPage() {
       </CardContent>
 
       <CardFooter className="justify-center">
-        <Link href="/login" className={buttonVariants({ variant: 'outline' })}>
+        <Link href="/login" className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground">
           Kembali ke Halaman Masuk
         </Link>
       </CardFooter>
