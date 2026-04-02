@@ -1,0 +1,140 @@
+'use client'
+
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { MenuIcon, UserIcon, LogOutIcon } from 'lucide-react'
+import { authClient } from '@/lib/auth-client'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Button } from '@/components/ui/button'
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet'
+import { DashboardBreadcrumb } from '@/components/layout/breadcrumb'
+import { SidebarContent } from '@/components/layout/sidebar'
+import { useState } from 'react'
+
+type UserRole = 'superadmin' | 'foundation' | 'school'
+
+interface HeaderProps {
+  userName: string
+  userEmail: string
+  userAvatar?: string | null
+  userRole: UserRole
+}
+
+function getInitials(name: string): string {
+  return name
+    .split(' ')
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase()
+}
+
+const ROLE_LABELS: Record<UserRole, string> = {
+  superadmin: 'Superadmin',
+  foundation: 'Yayasan',
+  school: 'Sekolah',
+}
+
+export function Header({
+  userName,
+  userEmail,
+  userAvatar,
+  userRole,
+}: HeaderProps) {
+  const router = useRouter()
+  const [mobileOpen, setMobileOpen] = useState(false)
+
+  async function handleLogout() {
+    await authClient.signOut()
+    router.push('/login')
+  }
+
+  return (
+    <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-background px-4 lg:px-6">
+      {/* Mobile hamburger button */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="lg:hidden"
+        aria-label="Buka menu navigasi"
+        onClick={() => setMobileOpen(true)}
+      >
+        <MenuIcon className="size-5" />
+      </Button>
+
+      {/* Mobile sidebar Sheet */}
+      <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+        <SheetContent side="left" className="w-60 p-0">
+          <SheetHeader className="sr-only">
+            <SheetTitle>Menu Navigasi</SheetTitle>
+          </SheetHeader>
+          <SidebarContent
+            role={userRole}
+            onNavigate={() => setMobileOpen(false)}
+          />
+        </SheetContent>
+      </Sheet>
+
+      {/* Breadcrumb */}
+      <div className="flex-1 overflow-hidden">
+        <DashboardBreadcrumb />
+      </div>
+
+      {/* User dropdown */}
+      <DropdownMenu>
+        <DropdownMenuTrigger aria-label="Menu pengguna">
+          <Avatar size="default">
+            {userAvatar && <AvatarImage src={userAvatar} alt={userName} />}
+            <AvatarFallback>{getInitials(userName)}</AvatarFallback>
+          </Avatar>
+        </DropdownMenuTrigger>
+
+        <DropdownMenuContent align="end" side="bottom" sideOffset={8}>
+          <DropdownMenuLabel>
+            <div className="flex flex-col gap-0.5">
+              <span className="font-medium text-foreground text-sm">
+                {userName}
+              </span>
+              <span className="text-xs text-muted-foreground">{userEmail}</span>
+              <span className="text-xs text-muted-foreground">
+                {ROLE_LABELS[userRole]}
+              </span>
+            </div>
+          </DropdownMenuLabel>
+
+          <DropdownMenuSeparator />
+
+          <DropdownMenuItem>
+            <Link href="/profile" className="flex items-center gap-2 w-full">
+              <UserIcon className="size-4" />
+              Profil Saya
+            </Link>
+          </DropdownMenuItem>
+
+          <DropdownMenuSeparator />
+
+          <DropdownMenuItem
+            variant="destructive"
+            onClick={handleLogout}
+          >
+            <LogOutIcon className="size-4" />
+            Keluar
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </header>
+  )
+}
