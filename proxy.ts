@@ -19,7 +19,7 @@ const ROLE_PROTECTED_PREFIXES: { prefix: string; roles: UserRole[] }[] = [
   { prefix: '/school', roles: ['school', 'superadmin'] },
 ]
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Ambil session dari cookie melalui better-auth
