@@ -29,11 +29,31 @@ This version has breaking changes — APIs, conventions, and file structure may 
    ```bash
    git push -u origin feat/issue-<nomor>-<slug>
    ```
-3. **Buat PR** ke `main` dengan format:
+3. **Jalankan test plan** — jalankan semua perintah yang relevan (TypeScript check, build check, db check, dll) dan simpan outputnya:
    ```bash
-   gh pr create --title "feat: <deskripsi singkat> (#<nomor>)" --body "Closes #<nomor>"
+   pnpm tsc --noEmit
+   pnpm build  # jika relevan
+   # perintah lain sesuai konteks issue
    ```
-4. **Jangan merge sendiri** — informasikan ke user bahwa PR sudah dibuat dan siap di-review
+4. **Jalankan review keamanan** — panggil agent `review-security` untuk issue ini sebelum membuat PR
+5. **Buat PR** ke `main` — isi body PR sesuai template (checklist + hasil test). Jangan sertakan teks "Generated with Claude Code":
+   ```bash
+   gh pr create --title "feat: <deskripsi singkat> (#<nomor>)" --body "$(cat <<'EOF'
+   ## Terkait Issue
+   Closes #<nomor>
+
+   ## Ringkasan Perubahan
+   <ringkasan>
+
+   ## Hasil Test Plan
+   <tempel output hasil test>
+
+   ## Checklist
+   - [x] ...
+   EOF
+   )"
+   ```
+6. **Jangan merge sendiri** — informasikan ke user bahwa PR sudah dibuat dan siap di-review
 
 ## Aturan Teknis
 
