@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -106,7 +107,7 @@ export function Header({
 
       {/* User dropdown */}
       <DropdownMenu>
-        <DropdownMenuTrigger aria-label="Menu pengguna">
+        <DropdownMenuTrigger aria-label="Menu pengguna" className="cursor-pointer rounded-full outline-none">
           <Avatar size="default">
             {userAvatar && <AvatarImage src={userAvatar} alt={userName} />}
             <AvatarFallback>{getInitials(userName)}</AvatarFallback>
@@ -114,36 +115,40 @@ export function Header({
         </DropdownMenuTrigger>
 
         <DropdownMenuContent align="end" side="bottom" sideOffset={8}>
-          <DropdownMenuLabel>
-            <div className="flex flex-col gap-0.5">
-              <span className="font-medium text-foreground text-sm">
-                {userName}
-              </span>
-              <span className="text-xs text-muted-foreground">{userEmail}</span>
-              <span className="text-xs text-muted-foreground">
-                {ROLE_LABELS[userRole]}
-              </span>
-            </div>
-          </DropdownMenuLabel>
+          <DropdownMenuGroup>
+            <DropdownMenuLabel>
+              <div className="flex flex-col gap-0.5">
+                <span className="font-medium text-foreground text-sm">
+                  {userName}
+                </span>
+                <span className="text-xs text-muted-foreground">{userEmail}</span>
+                <span className="text-xs text-muted-foreground">
+                  {ROLE_LABELS[userRole]}
+                </span>
+              </div>
+            </DropdownMenuLabel>
+          </DropdownMenuGroup>
 
           <DropdownMenuSeparator />
 
-          <DropdownMenuItem>
-            <Link href="/profile" className="flex items-center gap-2 w-full">
+          <DropdownMenuGroup>
+            <DropdownMenuItem render={<Link href="/profile" />}>
               <UserIcon className="size-4" />
               Profil Saya
-            </Link>
-          </DropdownMenuItem>
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
 
           <DropdownMenuSeparator />
 
-          <DropdownMenuItem
-            variant="destructive"
-            onClick={handleLogout}
-          >
-            <LogOutIcon className="size-4" />
-            Keluar
-          </DropdownMenuItem>
+          <DropdownMenuGroup>
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={handleLogout}
+            >
+              <LogOutIcon className="size-4" />
+              Keluar
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
     </header>
