@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 
-type UserRole = 'superadmin' | 'foundation' | 'school'
+type UserRole = 'superadmin' | 'user'
 
 const PUBLIC_ROUTES = [
   '/login',
@@ -13,11 +13,40 @@ const PUBLIC_ROUTES = [
 
 const AUTH_REDIRECT_ROUTES = ['/login', '/register']
 
-const ROLE_PROTECTED_PREFIXES: { prefix: string; roles: UserRole[] }[] = [
-  { prefix: '/superadmin', roles: ['superadmin'] },
-  { prefix: '/foundation', roles: ['foundation', 'superadmin'] },
-  { prefix: '/school', roles: ['school', 'superadmin'] },
-]
+/**
+ * Ekstrak subapp key dari pathname untuk pola /foundation/{key}/* atau /school/{key}/*.
+ * Mengembalikan key jika ditemukan, atau null jika tidak cocok.
+ */
+function extractSubappKey(pathname: string): string | null {
+  const match = pathname.match(/^\/(?:foundation|school)\/([^/]+)(?:\/|$)/)
+  return match ? match[1] : null
+}
+
+/**
+ * Periksa apakah user memiliki akses ke subapp tertentu melalui query DB.
+ * Dipanggil hanya untuk user biasa (non-superadmin).
+ */
+async function hasSubappAccess(userId: string, subappKey: string): Promise<boolean> {
+  // Import dinamis untuk menghindari bundling DB di edge runtime
+  // Middleware berjalan di Node.js runtime (bukan Edge)
+  const { db } = await import('@/lib/db')
+  const { userSubapps, subapps } = await import('@/lib/db/schema')
+  const { eq, and } = await import('drizzle-orm')
+
+  const result = await db
+    .select({ id: userSubapps.id })
+    .from(userSubapps)
+    .innerJoin(subapps, eq(userSubapps.subappId, subapps.id))
+    .where(
+      and(
+        eq(userSubapps.userId, userId),
+        eq(subapps.key, subappKey),
+      ),
+    )
+    .limit(1)
+
+  return result.length > 0
+}
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -48,14 +77,28 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
-  // Jika sudah login, periksa akses berdasarkan role
+  // Jika sudah login, periksa akses berdasarkan konteks path
   if (isAuthenticated && userRole) {
-    for (const { prefix, roles } of ROLE_PROTECTED_PREFIXES) {
-      if (pathname.startsWith(prefix)) {
-        if (!roles.includes(userRole)) {
-          return NextResponse.redirect(new URL('/', request.url))
+    // /superadmin/* → hanya superadmin
+    if (pathname.startsWith('/superadmin')) {
+      if (userRole !== 'superadmin') {
+        return NextResponse.redirect(new URL('/', request.url))
+      }
+    }
+
+    // /foundation/{key}/* atau /school/{key}/* → cek akses ke subapp
+    else if (pathname.startsWith('/foundation/') || pathname.startsWith('/school/')) {
+      const subappKey = extractSubappKey(pathname)
+
+      if (subappKey) {
+        // Superadmin bypass — akses semua SubApp
+        if (userRole !== 'superadmin') {
+          // User biasa — verifikasi akses ke SubApp dari DB
+          const allowed = await hasSubappAccess(session!.user.id, subappKey)
+          if (!allowed) {
+            return NextResponse.redirect(new URL('/', request.url))
+          }
         }
-        break
       }
     }
   }
