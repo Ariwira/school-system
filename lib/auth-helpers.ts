@@ -4,7 +4,7 @@ import { auth } from './auth'
 import { db } from './db'
 import { staffs } from './db/schema'
 
-type UserRole = 'superadmin' | 'foundation' | 'school'
+type UserRole = 'superadmin' | 'user'
 
 /**
  * Memastikan pengguna sudah login. Melempar error jika belum.
