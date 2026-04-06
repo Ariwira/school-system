@@ -8,7 +8,7 @@ export const users = pgTable('users', {
   emailVerified: boolean('email_verified').notNull().default(false),
   password: text('password'),
   avatar: text('avatar'),
-  role: userRoleEnum('role').notNull().default('school'),
+  role: userRoleEnum('role').notNull().default('user'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 })
