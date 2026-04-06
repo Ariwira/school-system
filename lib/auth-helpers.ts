@@ -135,30 +135,3 @@ export async function getUserInstituteId(_userId: string): Promise<string | null
   return null
 }
 
-/**
- * Mengambil semua SubApp yang dapat diakses oleh user tertentu.
- * Superadmin dapat melihat semua SubApp. User biasa hanya SubApp yang terdaftar.
- *
- * @param userId - ID user dari session
- * @returns Array SubApp yang dapat diakses user beserta session
- */
-export async function getUserSubapps(userId: string) {
-  const session = await requireAuth()
-
-  const userRole = (session.user as { role?: string }).role as UserRole | undefined
-
-  // Superadmin dapat melihat semua SubApp
-  if (userRole === 'superadmin') {
-    const all = await db.query.subapps.findMany()
-    return all
-  }
-
-  // User biasa — return dari join user_subapps + subapps
-  const result = await db
-    .select({ subapp: subapps })
-    .from(userSubapps)
-    .innerJoin(subapps, eq(userSubapps.subappId, subapps.id))
-    .where(and(eq(userSubapps.userId, userId)))
-
-  return result.map((r) => r.subapp)
-}
