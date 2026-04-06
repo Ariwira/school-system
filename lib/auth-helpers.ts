@@ -2,9 +2,9 @@ import { headers } from 'next/headers'
 import { and, eq } from 'drizzle-orm'
 import { auth } from './auth'
 import { db } from './db'
-import { subapps, userSubapps } from './db/schema'
+import { staffs, subapps, userSubapps } from './db/schema'
 
-export type UserRole = 'superadmin' | 'user'
+export type UserRole = 'superadmin' | 'foundation' | 'school'
 
 /**
  * Memastikan pengguna sudah login. Melempar error jika belum.
@@ -28,7 +28,7 @@ export async function requireAuth() {
  *
  * @param roles - Daftar role yang diizinkan
  */
-export async function requireRole(roles: UserRole[]) {
+export async function requireRole(roles: Array<UserRole>) {
   const session = await auth.api.getSession({
     headers: await headers(),
   })
@@ -133,4 +133,32 @@ export async function getUserInstituteId(_userId: string): Promise<string | null
     '[DEPRECATED] getUserInstituteId sudah deprecated. Gunakan requireSubappAccess(subappKey) sebagai pengganti.',
   )
   return null
+}
+
+/**
+ * Mengambil semua SubApp yang dapat diakses oleh user tertentu.
+ * Superadmin dapat melihat semua SubApp. User biasa hanya SubApp yang terdaftar.
+ *
+ * @param userId - ID user dari session
+ * @returns Array SubApp yang dapat diakses user beserta session
+ */
+export async function getUserSubapps(userId: string) {
+  const session = await requireAuth()
+
+  const userRole = (session.user as { role?: string }).role as UserRole | undefined
+
+  // Superadmin dapat melihat semua SubApp
+  if (userRole === 'superadmin') {
+    const all = await db.query.subapps.findMany()
+    return all
+  }
+
+  // User biasa — return dari join user_subapps + subapps
+  const result = await db
+    .select({ subapp: subapps })
+    .from(userSubapps)
+    .innerJoin(subapps, eq(userSubapps.subappId, subapps.id))
+    .where(and(eq(userSubapps.userId, userId)))
+
+  return result.map((r) => r.subapp)
 }
