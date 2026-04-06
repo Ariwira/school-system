@@ -1,4 +1,4 @@
-import { pgTable, smallint, text, timestamp, uuid } from 'drizzle-orm/pg-core'
+import { boolean, pgTable, smallint, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 import { instituteTypeEnum } from './enums'
 
 export const institutes = pgTable('institutes', {
@@ -11,6 +11,7 @@ export const institutes = pgTable('institutes', {
   image: text('image'),
   establishedYear: smallint('established_year'),
   type: instituteTypeEnum('type').notNull(),
+  isActive: boolean('is_active').notNull().default(true),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 })
