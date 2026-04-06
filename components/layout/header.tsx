@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/sheet'
 import { DashboardBreadcrumb } from '@/components/layout/breadcrumb'
 import { SidebarContent } from '@/components/layout/sidebar'
+import { SubAppSwitcher, type SubappItem } from '@/components/layout/subapp-switcher'
 import { useState } from 'react'
 
 type UserRole = 'superadmin' | 'foundation' | 'school'
@@ -31,6 +32,8 @@ interface HeaderProps {
   userEmail: string
   userAvatar?: string | null
   userRole: UserRole
+  subapps: SubappItem[]
+  currentSubappKey?: string | null
 }
 
 function getInitials(name: string): string {
@@ -53,6 +56,8 @@ export function Header({
   userEmail,
   userAvatar,
   userRole,
+  subapps,
+  currentSubappKey,
 }: HeaderProps) {
   const router = useRouter()
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -92,6 +97,13 @@ export function Header({
       <div className="flex-1 overflow-hidden">
         <DashboardBreadcrumb />
       </div>
+
+      {/* SubApp Switcher */}
+      <SubAppSwitcher
+        userRole={userRole}
+        subapps={subapps}
+        currentKey={currentSubappKey}
+      />
 
       {/* User dropdown */}
       <DropdownMenu>
