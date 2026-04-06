@@ -1,6 +1,7 @@
 'use server'
 
 import { and, count, eq, ilike, inArray, or } from 'drizzle-orm'
+import { revalidatePath } from 'next/cache'
 import { UTApi } from 'uploadthing/server'
 import { requireRole } from '@/lib/auth-helpers'
 import { db } from '@/lib/db'
@@ -510,12 +511,14 @@ export async function deactivateInstitute(
       }
     }
 
-    // Validasi passed — institusi dapat dinonaktifkan
-    // (Schema belum memiliki kolom isActive — perlu migration untuk implementasi penuh)
-    return {
-      success: true,
-      data: { id },
-    }
+    // Nonaktifkan institusi
+    await db
+      .update(institutes)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(eq(institutes.id, id))
+
+    revalidatePath('/superadmin/institutes')
+    return { success: true, data: { id } }
   } catch {
     return { success: false, error: 'Gagal memproses permintaan. Silakan coba lagi.' }
   }
