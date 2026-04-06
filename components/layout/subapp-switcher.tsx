@@ -23,7 +23,7 @@ export type SubappItem = {
 }
 
 interface SubAppSwitcherProps {
-  userRole: 'superadmin' | 'foundation' | 'school'
+  userRole: 'superadmin' | 'user'
   subapps: SubappItem[]
   currentKey?: string | null
 }
