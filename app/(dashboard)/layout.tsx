@@ -3,7 +3,7 @@ import { requireAuth, getUserSubapps } from '@/lib/auth-helpers'
 import { Header } from '@/components/layout/header'
 import { SidebarDesktop } from '@/components/layout/sidebar'
 
-type UserRole = 'superadmin' | 'foundation' | 'school'
+type UserRole = 'superadmin' | 'user'
 
 export default async function DashboardLayout({
   children,
@@ -19,7 +19,7 @@ export default async function DashboardLayout({
   }
 
   const { user } = session
-  const userRole = ((user as { role?: string }).role ?? 'school') as UserRole
+  const userRole = ((user as { role?: string }).role ?? 'user') as UserRole
 
   let subapps: Awaited<ReturnType<typeof getUserSubapps>> = []
 

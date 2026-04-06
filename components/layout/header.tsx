@@ -25,7 +25,7 @@ import { SidebarContent } from '@/components/layout/sidebar'
 import { SubAppSwitcher, type SubappItem } from '@/components/layout/subapp-switcher'
 import { useState } from 'react'
 
-type UserRole = 'superadmin' | 'foundation' | 'school'
+type UserRole = 'superadmin' | 'user'
 
 interface HeaderProps {
   userName: string
@@ -47,8 +47,7 @@ function getInitials(name: string): string {
 
 const ROLE_LABELS: Record<UserRole, string> = {
   superadmin: 'Superadmin',
-  foundation: 'Yayasan',
-  school: 'Sekolah',
+  user: 'Pengguna',
 }
 
 export function Header({

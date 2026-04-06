@@ -13,7 +13,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-type UserRole = 'superadmin' | 'foundation' | 'school'
+type UserRole = 'superadmin' | 'user'
 
 interface NavItem {
   label: string
@@ -21,6 +21,8 @@ interface NavItem {
   icon: React.ReactNode
 }
 
+// Nav items untuk superadmin.
+// User (foundation/school) mendapatkan nav dari sub-app specific layout.
 const NAV_ITEMS: Record<UserRole, NavItem[]> = {
   superadmin: [
     {
@@ -54,40 +56,7 @@ const NAV_ITEMS: Record<UserRole, NavItem[]> = {
       icon: <ArrowLeftRightIcon className="size-4" />,
     },
   ],
-  foundation: [
-    {
-      label: 'Staf',
-      href: '/foundation/staffs',
-      icon: <UsersIcon className="size-4" />,
-    },
-    {
-      label: 'Transfer Dana',
-      href: '/foundation/transfers',
-      icon: <ArrowLeftRightIcon className="size-4" />,
-    },
-  ],
-  school: [
-    {
-      label: 'Siswa',
-      href: '/school/students',
-      icon: <GraduationCapIcon className="size-4" />,
-    },
-    {
-      label: 'Staf',
-      href: '/school/staffs',
-      icon: <UsersIcon className="size-4" />,
-    },
-    {
-      label: 'Pembayaran SPP',
-      href: '/school/fee-payments',
-      icon: <ReceiptIcon className="size-4" />,
-    },
-    {
-      label: 'Transfer Dana',
-      href: '/school/transfers',
-      icon: <ArrowLeftRightIcon className="size-4" />,
-    },
-  ],
+  user: [],
 }
 
 interface SidebarNavProps {
