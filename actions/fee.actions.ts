@@ -3,7 +3,7 @@
 import { and, count, eq, sql } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import Decimal from 'decimal.js'
-import { requireRole } from '@/lib/auth-helpers'
+import { requireRole, requireSubappAccess } from '@/lib/auth-helpers'
 import { db } from '@/lib/db'
 import { fees, feePayments } from '@/lib/db/schema'
 import {
@@ -229,5 +229,35 @@ export async function updateFee(
     return { success: true, data: { id } }
   } catch {
     return { success: false, error: 'Gagal memperbarui tarif biaya. Silakan coba lagi.' }
+  }
+}
+
+/**
+ * Mengambil daftar tarif biaya untuk dropdown form pembayaran.
+ * Dapat diakses oleh superadmin dan school user (via subAppKey).
+ */
+export async function getFeesForPayment(
+  subAppKey?: string,
+): Promise<ActionResult<{ id: string; feeType: string; year: number; amount: string }[]>> {
+  if (subAppKey) {
+    await requireSubappAccess(subAppKey)
+  } else {
+    await requireRole(['superadmin'])
+  }
+
+  try {
+    const rows = await db
+      .select({
+        id: fees.id,
+        feeType: fees.feeType,
+        year: fees.year,
+        amount: fees.amount,
+      })
+      .from(fees)
+      .orderBy(fees.year, fees.feeType)
+
+    return { success: true, data: rows }
+  } catch {
+    return { success: false, error: 'Gagal mengambil data tarif biaya.' }
   }
 }

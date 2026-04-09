@@ -1,12 +1,14 @@
 'use client'
 
 import { useState, useTransition, useCallback } from 'react'
+import Link from 'next/link'
 import { toast } from 'sonner'
 import {
   PencilIcon,
   CheckCircleIcon,
   XCircleIcon,
   BanIcon,
+  EyeIcon,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -112,8 +114,27 @@ export function StudentsTable({
     })
   }, [confirmAction, subAppKey, onRefresh])
 
+  function getDetailHref(student: StudentRow): string {
+    if (subAppKey) {
+      return `/school/${subAppKey}/students/${student.id}`
+    }
+    return `/superadmin/students/${student.id}`
+  }
+
   function getActionButtons(student: StudentRow) {
     const buttons: React.ReactNode[] = []
+
+    buttons.push(
+      <Button
+        key="detail"
+        variant="outline"
+        size="sm"
+        render={<Link href={getDetailHref(student)} />}
+      >
+        <EyeIcon className="size-3.5 mr-1" />
+        Detail
+      </Button>,
+    )
 
     buttons.push(
       <Button
