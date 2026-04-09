@@ -59,14 +59,37 @@ const NAV_ITEMS: Record<UserRole, NavItem[]> = {
   user: [],
 }
 
+function getSchoolNavItems(subAppKey: string): NavItem[] {
+  return [
+    {
+      label: 'Staf',
+      href: `/school/${subAppKey}/staffs`,
+      icon: <UsersIcon className="size-4" />,
+    },
+    {
+      label: 'Siswa',
+      href: `/school/${subAppKey}/students`,
+      icon: <GraduationCapIcon className="size-4" />,
+    },
+    {
+      label: 'Pembayaran SPP',
+      href: `/school/${subAppKey}/fee-payments`,
+      icon: <ReceiptIcon className="size-4" />,
+    },
+  ]
+}
+
 interface SidebarNavProps {
   role: UserRole
   onNavigate?: () => void
+  subAppKey?: string
 }
 
-export function SidebarNav({ role, onNavigate }: SidebarNavProps) {
+export function SidebarNav({ role, onNavigate, subAppKey }: SidebarNavProps) {
   const pathname = usePathname()
-  const items = NAV_ITEMS[role] ?? []
+  const items = subAppKey && role === 'user'
+    ? getSchoolNavItems(subAppKey)
+    : (NAV_ITEMS[role] ?? [])
 
   return (
     <nav className="flex flex-col gap-1 px-3">
@@ -97,9 +120,10 @@ export function SidebarNav({ role, onNavigate }: SidebarNavProps) {
 interface SidebarContentProps {
   role: UserRole
   onNavigate?: () => void
+  subAppKey?: string
 }
 
-export function SidebarContent({ role, onNavigate }: SidebarContentProps) {
+export function SidebarContent({ role, onNavigate, subAppKey }: SidebarContentProps) {
   return (
     <div className="flex h-full flex-col gap-4 py-4">
       {/* Logo / App name */}
@@ -112,19 +136,20 @@ export function SidebarContent({ role, onNavigate }: SidebarContentProps) {
 
       <div className="h-px bg-border mx-3" />
 
-      <SidebarNav role={role} onNavigate={onNavigate} />
+      <SidebarNav role={role} onNavigate={onNavigate} subAppKey={subAppKey} />
     </div>
   )
 }
 
 interface SidebarDesktopProps {
   role: UserRole
+  subAppKey?: string
 }
 
-export function SidebarDesktop({ role }: SidebarDesktopProps) {
+export function SidebarDesktop({ role, subAppKey }: SidebarDesktopProps) {
   return (
     <aside className="hidden lg:flex lg:flex-col lg:w-60 lg:border-r lg:bg-background lg:shrink-0">
-      <SidebarContent role={role} />
+      <SidebarContent role={role} subAppKey={subAppKey} />
     </aside>
   )
 }

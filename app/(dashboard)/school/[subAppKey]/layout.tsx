@@ -38,7 +38,7 @@ export default async function SchoolSubappLayout(
 
   return (
     <div className="flex min-h-screen">
-      <SidebarDesktop role={userRole} />
+      <SidebarDesktop role={userRole} subAppKey={subAppKey} />
       <div className="flex flex-1 flex-col overflow-hidden">
         <Header
           userName={user.name}
@@ -47,6 +47,7 @@ export default async function SchoolSubappLayout(
           userRole={userRole}
           subapps={subapps}
           currentSubappKey={subAppKey}
+          subAppKey={subAppKey}
         />
         <main className="flex-1 overflow-y-auto p-4 lg:p-6">{props.children}</main>
       </div>
