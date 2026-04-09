@@ -1,6 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { ChevronDownIcon, BuildingIcon, SchoolIcon } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -57,13 +58,16 @@ export function SubAppSwitcher({
 }: SubAppSwitcherProps) {
   const router = useRouter()
 
-  // Superadmin — tampilkan label statis
+  // Superadmin — tampilkan label sebagai link ke panel superadmin
   if (userRole === 'superadmin') {
     return (
-      <div className="flex items-center gap-2 rounded-md border bg-muted/50 px-3 py-1.5">
+      <Link
+        href="/superadmin/institutes"
+        className="flex items-center gap-2 rounded-md border bg-muted/50 px-3 py-1.5 hover:bg-muted transition-colors cursor-pointer"
+      >
         <BuildingIcon className="size-4 text-muted-foreground" />
         <span className="text-sm font-medium">Super Admin</span>
-      </div>
+      </Link>
     )
   }
 
