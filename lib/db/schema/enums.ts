@@ -27,6 +27,8 @@ export const staffStatusEnum = pgEnum('staff_status', [
 export const studentStatusEnum = pgEnum('student_status', [
   'pending',
   'active',
+  'inactive',
+  'canceled',
   'graduated',
   'transferred',
   'dropped',

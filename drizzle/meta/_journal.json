@@ -15,6 +15,20 @@
       "when": 1775442435907,
       "tag": "0001_chilly_namorita",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1775465433790,
+      "tag": "0002_cute_iron_monger",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1775719065881,
+      "tag": "0003_daily_richard_fisk",
+      "breakpoints": true
     }
   ]
 }

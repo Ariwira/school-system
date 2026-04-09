@@ -1,0 +1,48 @@
+import { redirect } from 'next/navigation'
+import { requireSubappAccess } from '@/lib/auth-helpers'
+import { StudentsListClient } from '@/components/students/students-list-client'
+
+interface SchoolStudentsPageProps {
+  params: Promise<{ subAppKey: string }>
+}
+
+export async function generateMetadata({ params }: SchoolStudentsPageProps) {
+  const { subAppKey } = await params
+  return {
+    title: `Siswa Sekolah — ${subAppKey} — School ERP`,
+  }
+}
+
+export default async function SchoolStudentsPage({ params }: SchoolStudentsPageProps) {
+  const { subAppKey } = await params
+
+  let instituteId: string | undefined
+
+  try {
+    const { subapp } = await requireSubappAccess(subAppKey)
+
+    if (subapp.type !== 'school') {
+      redirect('/')
+    }
+
+    instituteId = subapp.instituteId ?? undefined
+  } catch {
+    redirect('/login')
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Manajemen Siswa</h1>
+        <p className="text-muted-foreground">
+          Kelola data siswa sekolah ini.
+        </p>
+      </div>
+
+      <StudentsListClient
+        subAppKey={subAppKey}
+        instituteId={instituteId}
+      />
+    </div>
+  )
+}
