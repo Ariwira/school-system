@@ -76,6 +76,26 @@ function getSchoolNavItems(subAppKey: string): NavItem[] {
       href: `/school/${subAppKey}/fee-payments`,
       icon: <ReceiptIcon className="size-4" />,
     },
+    {
+      label: 'Transfer Dana',
+      href: `/school/${subAppKey}/transfers`,
+      icon: <ArrowLeftRightIcon className="size-4" />,
+    },
+  ]
+}
+
+function getFoundationNavItems(subAppKey: string): NavItem[] {
+  return [
+    {
+      label: 'Staf',
+      href: `/foundation/${subAppKey}/staffs`,
+      icon: <UsersIcon className="size-4" />,
+    },
+    {
+      label: 'Transfer Dana',
+      href: `/foundation/${subAppKey}/transfers`,
+      icon: <ArrowLeftRightIcon className="size-4" />,
+    },
   ]
 }
 
@@ -83,12 +103,15 @@ interface SidebarNavProps {
   role: UserRole
   onNavigate?: () => void
   subAppKey?: string
+  subappType?: string
 }
 
-export function SidebarNav({ role, onNavigate, subAppKey }: SidebarNavProps) {
+export function SidebarNav({ role, onNavigate, subAppKey, subappType }: SidebarNavProps) {
   const pathname = usePathname()
   const items = subAppKey && role === 'user'
-    ? getSchoolNavItems(subAppKey)
+    ? subappType === 'foundation'
+      ? getFoundationNavItems(subAppKey)
+      : getSchoolNavItems(subAppKey)
     : (NAV_ITEMS[role] ?? [])
 
   return (
@@ -121,9 +144,10 @@ interface SidebarContentProps {
   role: UserRole
   onNavigate?: () => void
   subAppKey?: string
+  subappType?: string
 }
 
-export function SidebarContent({ role, onNavigate, subAppKey }: SidebarContentProps) {
+export function SidebarContent({ role, onNavigate, subAppKey, subappType }: SidebarContentProps) {
   return (
     <div className="flex h-full flex-col gap-4 py-4">
       {/* Logo / App name */}
@@ -136,7 +160,7 @@ export function SidebarContent({ role, onNavigate, subAppKey }: SidebarContentPr
 
       <div className="h-px bg-border mx-3" />
 
-      <SidebarNav role={role} onNavigate={onNavigate} subAppKey={subAppKey} />
+      <SidebarNav role={role} onNavigate={onNavigate} subAppKey={subAppKey} subappType={subappType} />
     </div>
   )
 }
@@ -144,12 +168,13 @@ export function SidebarContent({ role, onNavigate, subAppKey }: SidebarContentPr
 interface SidebarDesktopProps {
   role: UserRole
   subAppKey?: string
+  subappType?: string
 }
 
-export function SidebarDesktop({ role, subAppKey }: SidebarDesktopProps) {
+export function SidebarDesktop({ role, subAppKey, subappType }: SidebarDesktopProps) {
   return (
     <aside className="hidden lg:flex lg:flex-col lg:w-60 lg:border-r lg:bg-background lg:shrink-0">
-      <SidebarContent role={role} subAppKey={subAppKey} />
+      <SidebarContent role={role} subAppKey={subAppKey} subappType={subappType} />
     </aside>
   )
 }
