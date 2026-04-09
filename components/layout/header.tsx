@@ -36,6 +36,7 @@ interface HeaderProps {
   subapps: SubappItem[]
   currentSubappKey?: string | null
   subAppKey?: string
+  subappType?: string
 }
 
 function getInitials(name: string): string {
@@ -60,6 +61,7 @@ export function Header({
   subapps,
   currentSubappKey,
   subAppKey,
+  subappType,
 }: HeaderProps) {
   const router = useRouter()
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -92,6 +94,7 @@ export function Header({
             role={userRole}
             onNavigate={() => setMobileOpen(false)}
             subAppKey={subAppKey}
+            subappType={subappType}
           />
         </SheetContent>
       </Sheet>
