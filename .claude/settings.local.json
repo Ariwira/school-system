@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh issue:*)",
+      "Bash(npx shadcn@latest add select textarea --yes)"
+    ]
+  }
+}
