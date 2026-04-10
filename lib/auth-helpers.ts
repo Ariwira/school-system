@@ -4,7 +4,7 @@ import { auth } from './auth'
 import { db } from './db'
 import { staffs, subapps, userSubapps } from './db/schema'
 
-export type UserRole = 'superadmin' | 'foundation' | 'school'
+export type UserRole = 'superadmin' | 'user'
 
 /**
  * Memastikan pengguna sudah login. Melempar error jika belum.
