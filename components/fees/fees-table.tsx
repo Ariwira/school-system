@@ -10,6 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { UrlPagination } from '@/components/data-table/url-pagination'
 import type { FeeRow } from '@/lib/validations/fee'
 
 interface FeesTableProps {
@@ -17,7 +18,6 @@ interface FeesTableProps {
   total: number
   page: number
   perPage: number
-  onPageChange: (page: number) => void
   onEdit: (fee: FeeRow) => void
 }
 
@@ -45,10 +45,8 @@ export function FeesTable({
   total,
   page,
   perPage,
-  onPageChange,
   onEdit,
 }: FeesTableProps) {
-  const totalPages = Math.ceil(total / perPage)
 
   if (data.length === 0) {
     return (
@@ -101,32 +99,12 @@ export function FeesTable({
       </div>
 
       {/* Paginasi */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <span>
-            Menampilkan {(page - 1) * perPage + 1}–{Math.min(page * perPage, total)} dari{' '}
-            {total} tarif
-          </span>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onPageChange(page - 1)}
-              disabled={page <= 1}
-            >
-              Sebelumnya
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onPageChange(page + 1)}
-              disabled={page >= totalPages}
-            >
-              Berikutnya
-            </Button>
-          </div>
-        </div>
-      )}
+      <UrlPagination
+        total={total}
+        page={page}
+        perPage={perPage}
+        itemLabel="tarif"
+      />
     </div>
   )
 }

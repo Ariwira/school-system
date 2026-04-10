@@ -1,17 +1,10 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { PlusIcon, SearchIcon } from 'lucide-react'
+import { useSearchParams } from 'next/navigation'
+import { PlusIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import {
   Sheet,
   SheetContent,
@@ -19,6 +12,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
+import { SearchInput } from '@/components/data-table/search-input'
+import { FilterSelect } from '@/components/data-table/filter-select'
 import { StudentsTable } from './students-table'
 import { StudentForm } from './student-form'
 import { getStudents, getGenerationYears } from '@/actions/student.actions'
@@ -31,7 +26,7 @@ interface StudentsListClientProps {
   showInstitute?: boolean
 }
 
-const statusOptions: { value: StudentStatus | 'all'; label: string }[] = [
+const statusOptions = [
   { value: 'all', label: 'Semua Status' },
   { value: 'pending', label: 'Pending' },
   { value: 'active', label: 'Aktif' },
@@ -48,56 +43,49 @@ export function StudentsListClient({
   isSuperadmin = false,
   showInstitute = false,
 }: StudentsListClientProps) {
+  const searchParams = useSearchParams()
+
+  const search = searchParams.get('search') ?? ''
+  const statusFilter = searchParams.get('status') ?? 'all'
+  const yearFilter = searchParams.get('year') ?? 'all'
+  const page = Number(searchParams.get('page') ?? '1')
+
   const [data, setData] = useState<StudentRow[]>([])
   const [total, setTotal] = useState(0)
-  const [page, setPage] = useState(1)
-  const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<StudentStatus | 'all'>('all')
-  const [yearFilter, setYearFilter] = useState<string>('all')
-
-  const [availableYears, setAvailableYears] = useState<number[]>([])
   const [loading, setLoading] = useState(true)
+  const [availableYears, setAvailableYears] = useState<number[]>([])
 
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<StudentRow | null>(null)
 
   const perPage = 10
 
-  const fetchData = useCallback(
-    async (
-      currentPage: number,
-      currentSearch: string,
-      currentStatus: StudentStatus | 'all',
-      currentYear: string,
-    ) => {
-      setLoading(true)
-      try {
-        const result = await getStudents(
-          {
-            page: currentPage,
-            perPage,
-            search: currentSearch || undefined,
-            status: currentStatus !== 'all' ? currentStatus : undefined,
-            generationYear:
-              currentYear !== 'all' ? Number(currentYear) : undefined,
-          },
-          subAppKey,
-        )
+  const fetchData = useCallback(async () => {
+    setLoading(true)
+    try {
+      const result = await getStudents(
+        {
+          page,
+          perPage,
+          search: search || undefined,
+          status: statusFilter !== 'all' ? (statusFilter as StudentStatus) : undefined,
+          generationYear: yearFilter !== 'all' ? Number(yearFilter) : undefined,
+        },
+        subAppKey,
+      )
 
-        if (result.success) {
-          setData(result.data.data)
-          setTotal(result.data.total)
-        } else {
-          toast.error(result.error)
-        }
-      } catch {
-        toast.error('Gagal memuat data siswa.')
-      } finally {
-        setLoading(false)
+      if (result.success) {
+        setData(result.data.data)
+        setTotal(result.data.total)
+      } else {
+        toast.error(result.error)
       }
-    },
-    [subAppKey],
-  )
+    } catch {
+      toast.error('Gagal memuat data siswa.')
+    } finally {
+      setLoading(false)
+    }
+  }, [page, search, statusFilter, yearFilter, subAppKey])
 
   const fetchYears = useCallback(async () => {
     try {
@@ -110,23 +98,13 @@ export function StudentsListClient({
     }
   }, [subAppKey])
 
-  // Initial load and debounced search
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      setPage(1)
-      fetchData(1, search, statusFilter, yearFilter)
-    }, 400)
-    return () => clearTimeout(timeout)
-  }, [search, statusFilter, yearFilter, fetchData])
+    fetchData()
+  }, [fetchData])
 
   useEffect(() => {
     fetchYears()
   }, [fetchYears])
-
-  function handlePageChange(newPage: number) {
-    setPage(newPage)
-    fetchData(newPage, search, statusFilter, yearFilter)
-  }
 
   function handleAddNew() {
     setEditTarget(null)
@@ -141,58 +119,38 @@ export function StudentsListClient({
   function handleFormSuccess() {
     setSheetOpen(false)
     setEditTarget(null)
-    fetchData(page, search, statusFilter, yearFilter)
+    fetchData()
     fetchYears()
   }
+
+  const yearOptions = [
+    { value: 'all', label: 'Semua Angkatan' },
+    ...availableYears.map((y) => ({ value: String(y), label: `Angkatan ${y}` })),
+  ]
 
   return (
     <div className="space-y-4">
       {/* Toolbar */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
-          <div className="relative flex-1 max-w-sm">
-            <SearchIcon className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
-            <Input
-              placeholder="Cari nama, NISN, atau no. siswa..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-8"
-            />
-          </div>
-
-          <Select
-            value={statusFilter}
-            onValueChange={(val) => setStatusFilter(val as StudentStatus | 'all')}
-          >
-            <SelectTrigger className="w-full sm:w-[160px]">
-              <SelectValue placeholder="Semua Status" />
-            </SelectTrigger>
-            <SelectContent>
-              {statusOptions.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
+          <SearchInput
+            placeholder="Cari nama, NISN, atau no. siswa..."
+            paramKey="search"
+            className="max-w-sm"
+          />
+          <FilterSelect
+            options={statusOptions}
+            paramKey="status"
+            placeholder="Semua Status"
+            className="w-[160px]"
+          />
           {availableYears.length > 0 && (
-            <Select
-              value={yearFilter}
-              onValueChange={(val) => setYearFilter(val ?? 'all')}
-            >
-              <SelectTrigger className="w-full sm:w-[140px]">
-                <SelectValue placeholder="Semua Angkatan" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Semua Angkatan</SelectItem>
-                {availableYears.map((year) => (
-                  <SelectItem key={year} value={String(year)}>
-                    Angkatan {year}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <FilterSelect
+              options={yearOptions}
+              paramKey="year"
+              placeholder="Semua Angkatan"
+              className="w-[155px]"
+            />
           )}
         </div>
 
@@ -213,9 +171,8 @@ export function StudentsListClient({
           total={total}
           page={page}
           perPage={perPage}
-          onPageChange={handlePageChange}
           onEdit={handleEdit}
-          onRefresh={() => fetchData(page, search, statusFilter, yearFilter)}
+          onRefresh={fetchData}
           subAppKey={subAppKey}
           showInstitute={showInstitute}
         />

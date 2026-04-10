@@ -1,6 +1,6 @@
 'use server'
 
-import { and, count, eq, sql } from 'drizzle-orm'
+import { and, count, eq, sql, desc } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import Decimal from 'decimal.js'
 import { requireRole, requireSubappAccess } from '@/lib/auth-helpers'
@@ -33,16 +33,30 @@ export async function getFees(
   const parsed = getFeesSchema.safeParse({
     page: input.page ?? 1,
     perPage: input.perPage ?? 10,
+    feeType: input.feeType,
+    year: input.year,
   })
 
   if (!parsed.success) {
     return { success: false, error: 'Parameter tidak valid.' }
   }
 
-  const { page, perPage } = parsed.data
+  const { page, perPage, feeType, year } = parsed.data
   const offset = (page - 1) * perPage
 
   try {
+    const conditions = []
+
+    if (feeType) {
+      conditions.push(eq(fees.feeType, feeType))
+    }
+
+    if (year) {
+      conditions.push(eq(fees.year, year))
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined
+
     const rows = await db
       .select({
         id: fees.id,
@@ -55,12 +69,13 @@ export async function getFees(
       })
       .from(fees)
       .leftJoin(feePayments, eq(feePayments.feeId, fees.id))
+      .where(whereClause)
       .groupBy(fees.id)
-      .orderBy(fees.year, fees.feeType)
+      .orderBy(desc(fees.year), fees.feeType)
       .limit(perPage)
       .offset(offset)
 
-    const totalResult = await db.select({ count: count() }).from(fees)
+    const totalResult = await db.select({ count: count() }).from(fees).where(whereClause)
     const total = totalResult[0]?.count ?? 0
 
     const data: FeeRow[] = rows.map((row) => ({
@@ -76,6 +91,24 @@ export async function getFees(
     return { success: true, data: { data, total, page, perPage } }
   } catch {
     return { success: false, error: 'Gagal mengambil data tarif biaya. Silakan coba lagi.' }
+  }
+}
+
+/**
+ * Mengambil daftar tahun yang tersedia dari tarif biaya (untuk filter).
+ */
+export async function getFeeYears(): Promise<ActionResult<number[]>> {
+  await requireRole(['superadmin'])
+
+  try {
+    const rows = await db
+      .selectDistinct({ year: fees.year })
+      .from(fees)
+      .orderBy(desc(fees.year))
+
+    return { success: true, data: rows.map((r) => r.year) }
+  } catch {
+    return { success: false, error: 'Gagal mengambil data tahun biaya.' }
   }
 }
 

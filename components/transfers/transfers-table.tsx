@@ -22,6 +22,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { UrlPagination } from '@/components/data-table/url-pagination'
 import { cancelTransfer } from '@/actions/transfer.actions'
 import { statusConfig, transferMethodLabels, formatRupiah, formatDateWITA } from './transfer-utils'
 import type { TransferRow, TransferStatus } from '@/lib/validations/transfer'
@@ -32,7 +33,6 @@ interface TransfersTableProps {
   total: number
   page: number
   perPage: number
-  onPageChange: (page: number) => void
   onRefresh: () => void
   subAppKey?: string
   subappType?: string
@@ -45,7 +45,6 @@ export function TransfersTable({
   total,
   page,
   perPage,
-  onPageChange,
   onRefresh,
   subAppKey,
   subappType,
@@ -55,7 +54,6 @@ export function TransfersTable({
   const [cancelTarget, setCancelTarget] = useState<TransferRow | null>(null)
   const [approveTarget, setApproveTarget] = useState<TransferRow | null>(null)
 
-  const totalPages = Math.ceil(total / perPage)
   const canApproveCancel = subappType !== 'school'
 
   const handleCancel = useCallback(() => {
@@ -171,32 +169,12 @@ export function TransfersTable({
       </div>
 
       {/* Paginasi */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between pt-4">
-          <p className="text-sm text-muted-foreground">
-            Menampilkan {(page - 1) * perPage + 1}–{Math.min(page * perPage, total)} dari {total}{' '}
-            transfer
-          </p>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page <= 1 || isPending}
-              onClick={() => onPageChange(page - 1)}
-            >
-              Sebelumnya
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page >= totalPages || isPending}
-              onClick={() => onPageChange(page + 1)}
-            >
-              Berikutnya
-            </Button>
-          </div>
-        </div>
-      )}
+      <UrlPagination
+        total={total}
+        page={page}
+        perPage={perPage}
+        itemLabel="transfer"
+      />
 
       {/* Dialog konfirmasi batalkan */}
       <Dialog open={!!cancelTarget} onOpenChange={(open) => !open && setCancelTarget(null)}>

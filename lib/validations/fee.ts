@@ -32,6 +32,8 @@ export const updateFeeSchema = z.object({
 export const getFeesSchema = z.object({
   page: z.number().int().min(1).default(1),
   perPage: z.number().int().min(1).max(100).default(10),
+  feeType: z.enum(feeTypeValues).optional(),
+  year: z.number().int().optional(),
 })
 
 export type CreateFeeInput = z.infer<typeof createFeeSchema>

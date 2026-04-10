@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { requireRole } from '@/lib/auth-helpers'
 import { FeesListClient } from '@/components/fees/fees-list-client'
@@ -22,7 +23,9 @@ export default async function SuperadminFeesPage() {
         </p>
       </div>
 
-      <FeesListClient />
+      <Suspense fallback={<div className="rounded-md border p-8 text-center text-muted-foreground text-sm">Memuat data...</div>}>
+        <FeesListClient />
+      </Suspense>
     </div>
   )
 }

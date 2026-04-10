@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { requireSubappAccess } from '@/lib/auth-helpers'
 import { StaffsListClient } from '@/components/staffs/staffs-list-client'
@@ -39,10 +40,12 @@ export default async function FoundationStaffsPage({ params }: FoundationStaffsP
         </p>
       </div>
 
-      <StaffsListClient
-        subAppKey={subAppKey}
-        instituteId={instituteId}
-      />
+      <Suspense fallback={<div className="rounded-md border p-8 text-center text-muted-foreground text-sm">Memuat data...</div>}>
+        <StaffsListClient
+          subAppKey={subAppKey}
+          instituteId={instituteId}
+        />
+      </Suspense>
     </div>
   )
 }

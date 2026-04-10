@@ -9,6 +9,8 @@ import {
   createStaffSchema,
   updateStaffSchema,
   getStaffsSchema,
+  type StaffStatus,
+  type StaffDepartment,
   type CreateStaffInput,
   type UpdateStaffInput,
   type GetStaffsInput,
@@ -51,6 +53,8 @@ export async function getStaffs(
     page: input.page ?? 1,
     perPage: input.perPage ?? 10,
     search: input.search,
+    status: input.status,
+    department: input.department,
     instituteId: scopedInstituteId,
   })
 
@@ -58,7 +62,7 @@ export async function getStaffs(
     return { success: false, error: 'Parameter tidak valid.' }
   }
 
-  const { page, perPage, search } = parsed.data
+  const { page, perPage, search, status, department } = parsed.data
   const offset = (page - 1) * perPage
 
   try {
@@ -66,6 +70,14 @@ export async function getStaffs(
 
     if (scopedInstituteId) {
       conditions.push(eq(staffs.instituteId, scopedInstituteId))
+    }
+
+    if (status) {
+      conditions.push(eq(staffs.status, status as StaffStatus))
+    }
+
+    if (department) {
+      conditions.push(eq(staffs.department, department as StaffDepartment))
     }
 
     if (search) {

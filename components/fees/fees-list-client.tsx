@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { PlusIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -11,26 +12,43 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
+import { FilterSelect } from '@/components/data-table/filter-select'
 import { FeesTable } from './fees-table'
 import { FeeForm } from './fee-form'
-import { getFees } from '@/actions/fee.actions'
-import type { FeeRow } from '@/lib/validations/fee'
+import { getFees, getFeeYears } from '@/actions/fee.actions'
+import type { FeeRow, FeeType } from '@/lib/validations/fee'
+
+const feeTypeOptions = [
+  { value: 'all', label: 'Semua Tipe' },
+  { value: 'spp', label: 'SPP' },
+]
 
 export function FeesListClient() {
+  const searchParams = useSearchParams()
+
+  const feeTypeFilter = searchParams.get('feeType') ?? 'all'
+  const yearFilter = searchParams.get('year') ?? 'all'
+  const page = Number(searchParams.get('page') ?? '1')
+
   const [data, setData] = useState<FeeRow[]>([])
   const [total, setTotal] = useState(0)
-  const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
+  const [availableYears, setAvailableYears] = useState<number[]>([])
 
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<FeeRow | null>(null)
 
   const perPage = 10
 
-  const fetchData = useCallback(async (currentPage: number) => {
+  const fetchData = useCallback(async () => {
     setLoading(true)
     try {
-      const result = await getFees({ page: currentPage, perPage })
+      const result = await getFees({
+        page,
+        perPage,
+        feeType: feeTypeFilter !== 'all' ? (feeTypeFilter as FeeType) : undefined,
+        year: yearFilter !== 'all' ? Number(yearFilter) : undefined,
+      })
 
       if (result.success) {
         setData(result.data.data)
@@ -43,16 +61,26 @@ export function FeesListClient() {
     } finally {
       setLoading(false)
     }
+  }, [page, feeTypeFilter, yearFilter])
+
+  const fetchYears = useCallback(async () => {
+    try {
+      const result = await getFeeYears()
+      if (result.success) {
+        setAvailableYears(result.data)
+      }
+    } catch {
+      // silent — non-critical
+    }
   }, [])
 
   useEffect(() => {
-    fetchData(page)
-  }, [fetchData, page])
+    fetchData()
+  }, [fetchData])
 
-  function handlePageChange(newPage: number) {
-    setPage(newPage)
-    fetchData(newPage)
-  }
+  useEffect(() => {
+    fetchYears()
+  }, [fetchYears])
 
   function handleAddNew() {
     setEditTarget(null)
@@ -67,13 +95,36 @@ export function FeesListClient() {
   function handleFormSuccess() {
     setSheetOpen(false)
     setEditTarget(null)
-    fetchData(page)
+    fetchData()
+    fetchYears()
   }
+
+  const yearOptions = [
+    { value: 'all', label: 'Semua Tahun' },
+    ...availableYears.map((y) => ({ value: String(y), label: String(y) })),
+  ]
 
   return (
     <div className="space-y-4">
       {/* Toolbar */}
-      <div className="flex justify-end">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex gap-2">
+          <FilterSelect
+            options={feeTypeOptions}
+            paramKey="feeType"
+            placeholder="Semua Tipe"
+            className="w-[140px]"
+          />
+          {availableYears.length > 0 && (
+            <FilterSelect
+              options={yearOptions}
+              paramKey="year"
+              placeholder="Semua Tahun"
+              className="w-[140px]"
+            />
+          )}
+        </div>
+
         <Button onClick={handleAddNew}>
           <PlusIcon className="size-4 mr-2" />
           Tambah Tarif
@@ -91,7 +142,6 @@ export function FeesListClient() {
           total={total}
           page={page}
           perPage={perPage}
-          onPageChange={handlePageChange}
           onEdit={handleEdit}
         />
       )}

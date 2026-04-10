@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { PlusIcon, SearchIcon } from 'lucide-react'
+import { useSearchParams } from 'next/navigation'
+import { PlusIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import {
   Sheet,
   SheetContent,
@@ -12,11 +12,13 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
+import { SearchInput } from '@/components/data-table/search-input'
+import { FilterSelect } from '@/components/data-table/filter-select'
 import { StaffsTable } from './staffs-table'
 import { StaffForm } from './staff-form'
 import { LinkUserDialog } from './link-user-dialog'
 import { getStaffs } from '@/actions/staff.actions'
-import type { StaffWithUser } from '@/lib/validations/staff'
+import type { StaffWithUser, StaffStatus, StaffDepartment } from '@/lib/validations/staff'
 
 interface StaffsListClientProps {
   subAppKey?: string
@@ -25,16 +27,38 @@ interface StaffsListClientProps {
   showInstitute?: boolean
 }
 
+const statusOptions = [
+  { value: 'all', label: 'Semua Status' },
+  { value: 'active', label: 'Aktif' },
+  { value: 'inactive', label: 'Tidak Aktif' },
+  { value: 'resigned', label: 'Keluar' },
+]
+
+const departmentOptions = [
+  { value: 'all', label: 'Semua Departemen' },
+  { value: 'academic', label: 'Akademik' },
+  { value: 'administration', label: 'Administrasi' },
+  { value: 'finance', label: 'Keuangan' },
+  { value: 'it', label: 'IT' },
+  { value: 'hr', label: 'SDM' },
+  { value: 'other', label: 'Lainnya' },
+]
+
 export function StaffsListClient({
   subAppKey,
   instituteId,
   isSuperadmin = false,
   showInstitute = false,
 }: StaffsListClientProps) {
+  const searchParams = useSearchParams()
+
+  const search = searchParams.get('search') ?? ''
+  const statusFilter = searchParams.get('status') ?? 'all'
+  const departmentFilter = searchParams.get('department') ?? 'all'
+  const page = Number(searchParams.get('page') ?? '1')
+
   const [data, setData] = useState<StaffWithUser[]>([])
   const [total, setTotal] = useState(0)
-  const [page, setPage] = useState(1)
-  const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
 
   // Sheet states
@@ -47,48 +71,36 @@ export function StaffsListClient({
 
   const perPage = 10
 
-  const fetchData = useCallback(
-    async (currentPage: number, currentSearch: string) => {
-      setLoading(true)
-      try {
-        const result = await getStaffs(
-          {
-            page: currentPage,
-            perPage,
-            search: currentSearch || undefined,
-          },
-          subAppKey,
-        )
+  const fetchData = useCallback(async () => {
+    setLoading(true)
+    try {
+      const result = await getStaffs(
+        {
+          page,
+          perPage,
+          search: search || undefined,
+          status: statusFilter !== 'all' ? (statusFilter as StaffStatus) : undefined,
+          department: departmentFilter !== 'all' ? (departmentFilter as StaffDepartment) : undefined,
+        },
+        subAppKey,
+      )
 
-        if (result.success) {
-          setData(result.data.data)
-          setTotal(result.data.total)
-        } else {
-          toast.error(result.error)
-        }
-      } catch {
-        toast.error('Gagal memuat data staf.')
-      } finally {
-        setLoading(false)
+      if (result.success) {
+        setData(result.data.data)
+        setTotal(result.data.total)
+      } else {
+        toast.error(result.error)
       }
-    },
-    [subAppKey],
-  )
+    } catch {
+      toast.error('Gagal memuat data staf.')
+    } finally {
+      setLoading(false)
+    }
+  }, [page, search, statusFilter, departmentFilter, subAppKey])
 
-  // Debounce search
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      setPage(1)
-      fetchData(1, search)
-    }, 400)
-
-    return () => clearTimeout(timeout)
-  }, [search, fetchData])
-
-  function handlePageChange(newPage: number) {
-    setPage(newPage)
-    fetchData(newPage, search)
-  }
+    fetchData()
+  }, [fetchData])
 
   function handleAddNew() {
     setEditTarget(null)
@@ -108,24 +120,34 @@ export function StaffsListClient({
   function handleFormSuccess() {
     setSheetOpen(false)
     setEditTarget(null)
-    fetchData(page, search)
+    fetchData()
   }
 
   function handleLinkSuccess() {
-    fetchData(page, search)
+    fetchData()
   }
 
   return (
     <div className="space-y-4">
       {/* Toolbar */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative flex-1 max-w-sm">
-          <SearchIcon className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
-          <Input
+        <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
+          <SearchInput
             placeholder="Cari nama, no. staf, atau email..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-8"
+            paramKey="search"
+            className="max-w-sm"
+          />
+          <FilterSelect
+            options={statusOptions}
+            paramKey="status"
+            placeholder="Semua Status"
+            className="w-[160px]"
+          />
+          <FilterSelect
+            options={departmentOptions}
+            paramKey="department"
+            placeholder="Semua Departemen"
+            className="w-[175px]"
           />
         </div>
 
@@ -146,10 +168,9 @@ export function StaffsListClient({
           total={total}
           page={page}
           perPage={perPage}
-          onPageChange={handlePageChange}
           onEdit={handleEdit}
           onLinkUser={handleLinkUser}
-          onRefresh={() => fetchData(page, search)}
+          onRefresh={fetchData}
           subAppKey={subAppKey}
           showInstitute={showInstitute}
         />

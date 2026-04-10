@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { requireRole } from '@/lib/auth-helpers'
 import { StudentsListClient } from '@/components/students/students-list-client'
@@ -22,7 +23,9 @@ export default async function SuperadminStudentsPage() {
         </p>
       </div>
 
-      <StudentsListClient isSuperadmin showInstitute />
+      <Suspense fallback={<div className="rounded-md border p-8 text-center text-muted-foreground text-sm">Memuat data...</div>}>
+        <StudentsListClient isSuperadmin showInstitute />
+      </Suspense>
     </div>
   )
 }

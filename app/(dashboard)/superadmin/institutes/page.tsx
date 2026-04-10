@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { requireRole } from '@/lib/auth-helpers'
 import { InstitutesListClient } from '@/components/institutes/institutes-list-client'
@@ -22,7 +23,9 @@ export default async function InstitutesPage() {
         </p>
       </div>
 
-      <InstitutesListClient />
+      <Suspense fallback={<div className="rounded-md border p-8 text-center text-muted-foreground text-sm">Memuat data...</div>}>
+        <InstitutesListClient />
+      </Suspense>
     </div>
   )
 }

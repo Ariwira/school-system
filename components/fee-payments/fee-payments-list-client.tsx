@@ -1,17 +1,10 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { PlusIcon, SearchIcon } from 'lucide-react'
+import { useSearchParams } from 'next/navigation'
+import { PlusIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import {
   Sheet,
   SheetContent,
@@ -19,16 +12,18 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
+import { SearchInput } from '@/components/data-table/search-input'
+import { FilterSelect } from '@/components/data-table/filter-select'
 import { FeePaymentsTable } from './fee-payments-table'
 import { FeePaymentForm } from './fee-payment-form'
-import { getFeePayments } from '@/actions/fee-payment.actions'
+import { getFeePayments, getFeeYears } from '@/actions/fee-payment.actions'
 import type { FeePaymentRow, PaymentStatus, PaymentMethod } from '@/lib/validations/fee-payment'
 
 interface FeePaymentsListClientProps {
   subAppKey?: string
 }
 
-const statusOptions: { value: PaymentStatus | 'all'; label: string }[] = [
+const statusOptions = [
   { value: 'all', label: 'Semua Status' },
   { value: 'pending', label: 'Pending' },
   { value: 'paid', label: 'Lunas' },
@@ -36,7 +31,7 @@ const statusOptions: { value: PaymentStatus | 'all'; label: string }[] = [
   { value: 'refunded', label: 'Dikembalikan' },
 ]
 
-const methodOptions: { value: PaymentMethod | 'all'; label: string }[] = [
+const methodOptions = [
   { value: 'all', label: 'Semua Metode' },
   { value: 'cash', label: 'Tunai' },
   { value: 'transfer', label: 'Transfer' },
@@ -46,118 +41,110 @@ const methodOptions: { value: PaymentMethod | 'all'; label: string }[] = [
 ]
 
 export function FeePaymentsListClient({ subAppKey }: FeePaymentsListClientProps) {
+  const searchParams = useSearchParams()
+
+  const search = searchParams.get('search') ?? ''
+  const statusFilter = searchParams.get('status') ?? 'all'
+  const methodFilter = searchParams.get('method') ?? 'all'
+  const feeYearFilter = searchParams.get('feeYear') ?? 'all'
+  const page = Number(searchParams.get('page') ?? '1')
+
   const [data, setData] = useState<FeePaymentRow[]>([])
   const [total, setTotal] = useState(0)
-  const [page, setPage] = useState(1)
-  const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<PaymentStatus | 'all'>('all')
-  const [methodFilter, setMethodFilter] = useState<PaymentMethod | 'all'>('all')
   const [loading, setLoading] = useState(true)
+  const [availableYears, setAvailableYears] = useState<number[]>([])
 
   const [sheetOpen, setSheetOpen] = useState(false)
 
   const perPage = 10
 
-  const fetchData = useCallback(
-    async (
-      currentPage: number,
-      currentSearch: string,
-      currentStatus: PaymentStatus | 'all',
-      currentMethod: PaymentMethod | 'all',
-    ) => {
-      setLoading(true)
-      try {
-        const result = await getFeePayments(
-          {
-            page: currentPage,
-            perPage,
-            search: currentSearch || undefined,
-            status: currentStatus !== 'all' ? currentStatus : undefined,
-            paymentMethod: currentMethod !== 'all' ? currentMethod : undefined,
-          },
-          subAppKey,
-        )
+  const fetchData = useCallback(async () => {
+    setLoading(true)
+    try {
+      const result = await getFeePayments(
+        {
+          page,
+          perPage,
+          search: search || undefined,
+          status: statusFilter !== 'all' ? (statusFilter as PaymentStatus) : undefined,
+          paymentMethod: methodFilter !== 'all' ? (methodFilter as PaymentMethod) : undefined,
+          feeYear: feeYearFilter !== 'all' ? Number(feeYearFilter) : undefined,
+        },
+        subAppKey,
+      )
 
-        if (result.success) {
-          setData(result.data.data)
-          setTotal(result.data.total)
-        } else {
-          toast.error(result.error)
-        }
-      } catch {
-        toast.error('Gagal memuat data pembayaran.')
-      } finally {
-        setLoading(false)
+      if (result.success) {
+        setData(result.data.data)
+        setTotal(result.data.total)
+      } else {
+        toast.error(result.error)
       }
-    },
-    [subAppKey],
-  )
+    } catch {
+      toast.error('Gagal memuat data pembayaran.')
+    } finally {
+      setLoading(false)
+    }
+  }, [page, search, statusFilter, methodFilter, feeYearFilter, subAppKey])
 
-  // Debounce search
+  const fetchYears = useCallback(async () => {
+    try {
+      const result = await getFeeYears(subAppKey)
+      if (result.success) {
+        setAvailableYears(result.data)
+      }
+    } catch {
+      // silent — non-critical
+    }
+  }, [subAppKey])
+
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      setPage(1)
-      fetchData(1, search, statusFilter, methodFilter)
-    }, 400)
-    return () => clearTimeout(timeout)
-  }, [search, statusFilter, methodFilter, fetchData])
+    fetchData()
+  }, [fetchData])
 
-  function handlePageChange(newPage: number) {
-    setPage(newPage)
-    fetchData(newPage, search, statusFilter, methodFilter)
-  }
+  useEffect(() => {
+    fetchYears()
+  }, [fetchYears])
 
   function handleFormSuccess() {
     setSheetOpen(false)
-    fetchData(page, search, statusFilter, methodFilter)
+    fetchData()
   }
+
+  const yearOptions = [
+    { value: 'all', label: 'Semua Tahun' },
+    ...availableYears.map((y) => ({ value: String(y), label: String(y) })),
+  ]
 
   return (
     <div className="space-y-4">
       {/* Toolbar */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
-          <div className="relative flex-1 max-w-sm">
-            <SearchIcon className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
-            <Input
-              placeholder="Cari nama siswa atau no. siswa..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-8"
+          <SearchInput
+            placeholder="Cari nama siswa atau no. siswa..."
+            paramKey="search"
+            className="max-w-sm"
+          />
+          <FilterSelect
+            options={statusOptions}
+            paramKey="status"
+            placeholder="Semua Status"
+            className="w-[160px]"
+          />
+          <FilterSelect
+            options={methodOptions}
+            paramKey="method"
+            placeholder="Semua Metode"
+            className="w-[160px]"
+          />
+          {availableYears.length > 0 && (
+            <FilterSelect
+              options={yearOptions}
+              paramKey="feeYear"
+              placeholder="Semua Tahun"
+              className="w-[140px]"
             />
-          </div>
-
-          <Select
-            value={statusFilter}
-            onValueChange={(val) => setStatusFilter(val as PaymentStatus | 'all')}
-          >
-            <SelectTrigger className="w-full sm:w-[160px]">
-              <SelectValue placeholder="Semua Status" />
-            </SelectTrigger>
-            <SelectContent>
-              {statusOptions.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select
-            value={methodFilter}
-            onValueChange={(val) => setMethodFilter(val as PaymentMethod | 'all')}
-          >
-            <SelectTrigger className="w-full sm:w-[160px]">
-              <SelectValue placeholder="Semua Metode" />
-            </SelectTrigger>
-            <SelectContent>
-              {methodOptions.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          )}
         </div>
 
         <Button onClick={() => setSheetOpen(true)}>
@@ -177,8 +164,7 @@ export function FeePaymentsListClient({ subAppKey }: FeePaymentsListClientProps)
           total={total}
           page={page}
           perPage={perPage}
-          onPageChange={handlePageChange}
-          onRefresh={() => fetchData(page, search, statusFilter, methodFilter)}
+          onRefresh={fetchData}
           subAppKey={subAppKey}
         />
       )}
