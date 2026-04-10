@@ -153,6 +153,20 @@ export async function getFeePaymentsByStudent(
     if (subapp.type !== 'school') {
       return { success: false, error: 'Akses ditolak.' }
     }
+
+    // Validasi siswa milik institusi yang sama dengan subapp
+    if (!studentId) {
+      return { success: false, error: 'ID siswa tidak valid.' }
+    }
+    const studentCheck = await db
+      .select({ instituteId: students.instituteId })
+      .from(students)
+      .where(eq(students.id, studentId))
+      .limit(1)
+
+    if (!studentCheck[0] || studentCheck[0].instituteId !== subapp.instituteId) {
+      return { success: false, error: 'Siswa tidak ditemukan di institusi ini.' }
+    }
   } else {
     await requireRole(['superadmin'])
   }
