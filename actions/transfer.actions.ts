@@ -6,7 +6,8 @@ import { revalidatePath } from 'next/cache'
 import Decimal from 'decimal.js'
 import { requireRole, requireSubappAccess } from '@/lib/auth-helpers'
 import { db } from '@/lib/db'
-import { institutes, staffs, transfers } from '@/lib/db/schema'
+import { institutes, staffs, transfers, users } from '@/lib/db/schema'
+import { sendTransferPendingEmail } from '@/lib/email'
 import {
   createTransferSchema,
   approveTransferSchema,
@@ -359,9 +360,113 @@ export async function createTransfer(
     }
 
     revalidateTransferPaths(subAppKey)
+
+    // Kirim notifikasi email ke approver (superadmin + staf foundation) — graceful
+    void sendTransferNotifications({
+      transferId: newTransfer.id,
+      transferFromId,
+      transferToId,
+      amount: decimalAmount,
+      transferMethod,
+      issuedAt: new Date(issuedAt),
+      notes: notes || null,
+    })
+
     return { success: true, data: { id: newTransfer.id } }
   } catch {
     return { success: false, error: 'Gagal membuat pengajuan transfer. Silakan coba lagi.' }
+  }
+}
+
+/**
+ * Mengirim notifikasi transfer ke semua approver yang relevan.
+ * Dipanggil secara async — kegagalan tidak memblokir operasi utama.
+ */
+async function sendTransferNotifications(params: {
+  transferId: string
+  transferFromId: string
+  transferToId: string
+  amount: string
+  transferMethod: string
+  issuedAt: Date
+  notes: string | null
+}): Promise<void> {
+  try {
+    // Ambil nama institusi dari dan ke
+    const [fromInstitute, toInstitute] = await Promise.all([
+      db
+        .select({ name: institutes.name })
+        .from(institutes)
+        .where(eq(institutes.id, params.transferFromId))
+        .limit(1),
+      db
+        .select({ name: institutes.name })
+        .from(institutes)
+        .where(eq(institutes.id, params.transferToId))
+        .limit(1),
+    ])
+
+    const fromName = fromInstitute[0]?.name ?? 'Tidak diketahui'
+    const toName = toInstitute[0]?.name ?? 'Tidak diketahui'
+
+    // Cari semua approver: superadmin users + staf aktif dari institusi foundation yang punya user account
+    const [superadminUsers, foundationStaffs] = await Promise.all([
+      // Superadmin users — langsung dari tabel users
+      db
+        .select({ email: users.email, name: users.name })
+        .from(users)
+        .where(eq(users.role, 'superadmin')),
+      // Staf aktif dari institusi type foundation yang punya user account
+      db
+        .select({ email: staffs.email, name: staffs.name })
+        .from(staffs)
+        .innerJoin(institutes, eq(staffs.instituteId, institutes.id))
+        .where(
+          and(
+            eq(institutes.type, 'foundation'),
+            eq(staffs.status, 'active'),
+          ),
+        ),
+    ])
+
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+
+    // Gabungkan semua approver — hindari duplikasi berdasarkan email
+    const emailSet = new Set<string>()
+    const approvers: { email: string; name: string }[] = []
+
+    for (const u of superadminUsers) {
+      if (!emailSet.has(u.email)) {
+        emailSet.add(u.email)
+        approvers.push({ email: u.email, name: u.name })
+      }
+    }
+
+    for (const s of foundationStaffs) {
+      if (!emailSet.has(s.email)) {
+        emailSet.add(s.email)
+        approvers.push({ email: s.email, name: s.name })
+      }
+    }
+
+    // Kirim email ke semua approver secara paralel
+    await Promise.allSettled(
+      approvers.map((approver) =>
+        sendTransferPendingEmail(approver.email, {
+          approverName: approver.name,
+          transferId: params.transferId,
+          fromInstitute: fromName,
+          toInstitute: toName,
+          amount: params.amount,
+          issuedAt: params.issuedAt,
+          transferMethod: params.transferMethod,
+          notes: params.notes,
+          appUrl,
+        }),
+      ),
+    )
+  } catch (err) {
+    console.error('[transfer] Gagal mengirim notifikasi email transfer:', err)
   }
 }
 
