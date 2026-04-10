@@ -6,7 +6,7 @@ import { revalidatePath } from 'next/cache'
 import Decimal from 'decimal.js'
 import { requireRole, requireSubappAccess } from '@/lib/auth-helpers'
 import { db } from '@/lib/db'
-import { institutes, staffs, transfers, users } from '@/lib/db/schema'
+import { institutes, staffs, subapps, transfers, users } from '@/lib/db/schema'
 import { sendTransferPendingEmail } from '@/lib/email'
 import {
   createTransferSchema,
@@ -409,49 +409,72 @@ async function sendTransferNotifications(params: {
     const fromName = fromInstitute[0]?.name ?? 'Tidak diketahui'
     const toName = toInstitute[0]?.name ?? 'Tidak diketahui'
 
-    // Cari semua approver: superadmin users + staf aktif dari institusi foundation yang punya user account
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+
+    // Cari semua approver: superadmin users + staf aktif dari institusi foundation
+    // yang terlibat langsung dalam transfer (transferFromId atau transferToId)
     const [superadminUsers, foundationStaffs] = await Promise.all([
-      // Superadmin users — langsung dari tabel users
       db
         .select({ email: users.email, name: users.name })
         .from(users)
         .where(eq(users.role, 'superadmin')),
-      // Staf aktif dari institusi type foundation yang punya user account
+      // Hanya staf dari foundation yang terlibat dalam transfer ini
       db
-        .select({ email: staffs.email, name: staffs.name })
+        .select({
+          email: staffs.email,
+          name: staffs.name,
+          subappKey: subapps.key,
+        })
         .from(staffs)
         .innerJoin(institutes, eq(staffs.instituteId, institutes.id))
+        .leftJoin(subapps, eq(subapps.instituteId, institutes.id))
         .where(
           and(
             eq(institutes.type, 'foundation'),
             eq(staffs.status, 'active'),
+            or(
+              eq(institutes.id, params.transferFromId),
+              eq(institutes.id, params.transferToId),
+            ),
           ),
         ),
     ])
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
-
     // Gabungkan semua approver — hindari duplikasi berdasarkan email
     const emailSet = new Set<string>()
-    const approvers: { email: string; name: string }[] = []
+    const approversSuperadmin: { email: string; name: string; transferUrl: string }[] = []
+    const approversFoundation: { email: string; name: string; transferUrl: string }[] = []
 
     for (const u of superadminUsers) {
       if (!emailSet.has(u.email)) {
         emailSet.add(u.email)
-        approvers.push({ email: u.email, name: u.name })
+        approversSuperadmin.push({
+          email: u.email,
+          name: u.name,
+          transferUrl: `${appUrl}/superadmin/transfers`,
+        })
       }
     }
 
     for (const s of foundationStaffs) {
       if (!emailSet.has(s.email)) {
         emailSet.add(s.email)
-        approvers.push({ email: s.email, name: s.name })
+        const path = s.subappKey
+          ? `/foundation/${s.subappKey}/transfers`
+          : '/superadmin/transfers'
+        approversFoundation.push({
+          email: s.email,
+          name: s.name,
+          transferUrl: `${appUrl}${path}`,
+        })
       }
     }
 
+    const allApprovers = [...approversSuperadmin, ...approversFoundation]
+
     // Kirim email ke semua approver secara paralel
     await Promise.allSettled(
-      approvers.map((approver) =>
+      allApprovers.map((approver) =>
         sendTransferPendingEmail(approver.email, {
           approverName: approver.name,
           transferId: params.transferId,
@@ -461,7 +484,7 @@ async function sendTransferNotifications(params: {
           issuedAt: params.issuedAt,
           transferMethod: params.transferMethod,
           notes: params.notes,
-          appUrl,
+          transferUrl: approver.transferUrl,
         }),
       ),
     )

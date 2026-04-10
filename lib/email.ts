@@ -24,7 +24,7 @@ export async function sendTransferPendingEmail(
     issuedAt: Date
     transferMethod: string
     notes: string | null
-    appUrl: string
+    transferUrl: string
   },
 ): Promise<SendEmailResult> {
   try {
@@ -54,7 +54,7 @@ export async function sendTransferPendingEmail(
       formattedDate,
       transferMethod: methodLabel[params.transferMethod] ?? params.transferMethod,
       notes: params.notes,
-      transferUrl: `${params.appUrl}/superadmin/transfers`,
+      transferUrl: params.transferUrl,
     })
 
     const { error } = await resend.emails.send({
