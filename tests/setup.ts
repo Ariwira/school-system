@@ -10,6 +10,34 @@
  */
 import { vi } from 'vitest'
 
+// Mock resend
+vi.mock('resend', () => ({
+  Resend: function() {
+    return {
+      emails: {
+        send: vi.fn().mockResolvedValue({ data: { id: 'test' }, error: null }),
+      },
+    }
+  },
+}))
+
+// Mock lib/db — mencegah inisialisasi Neon/Drizzle asli di test
+vi.mock('@/lib/db', () => ({
+  db: {
+    select: vi.fn(),
+    insert: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
+    transaction: vi.fn(),
+    query: {
+      subapps: {
+        findFirst: vi.fn(),
+        findMany: vi.fn(),
+      },
+    },
+  },
+}))
+
 // Mock next/headers — dipakai oleh auth-helpers dan Server Actions
 vi.mock('next/headers', () => ({
   headers: vi.fn().mockResolvedValue(new Headers()),

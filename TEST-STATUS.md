@@ -9,18 +9,85 @@ Jalankan: `pnpm test` atau `pnpm test:watch`
 
 | Modul | Total | Lulus | Gagal | Status |
 |---|---|---|---|---|
-| `profile` | 21 | 20 | 1 | Hampir selesai |
-| `fee` | 10 | 9 | 1 | Hampir selesai |
-| `fee-payment` | 13 | 13 | 0 | ✅ Selesai |
-| `transfer` | 26 | 26 | 0 | ✅ Selesai |
-| `institute` | 17 | 6 | 11 | ✅ Selesai (100% Lulus)
-| `student` | 17 | 9 | 8 | ✅ Selesai (100% Lulus)
-| `staff` | 25 | 7 | 18 | ✅ Selesai (100% Lulus)
-| **Total** | **129** | **90** | **39** | |
+| `profile` | 21 | 21 | 0 | ✅ Selesai |
+| `fee` | 15 | 15 | 0 | ✅ Selesai |
+| `fee-payment` | 18 | 18 | 0 | ✅ Selesai |
+| `fee-payment-export` | 7 | 7 | 0 | ✅ Selesai |
+| `transfer` | 24 | 24 | 0 | ✅ Selesai |
+| `institute` | 22 | 22 | 0 | ✅ Selesai |
+| `student` | 26 | 26 | 0 | ✅ Selesai |
+| `staff` | 21 | 21 | 0 | ✅ Selesai |
+| `dashboard` | 12 | 12 | 0 | ✅ Selesai |
+| `auth-helpers` | 11 | 11 | 0 | ✅ Selesai |
+| `email` | 5 | 5 | 0 | ✅ Selesai |
+| **Total** | **202** | **202** | **0** | |
 
 ---
 
-## ✅ Selesai — `fee-payment` (13/13)
+## ✅ Selesai — `dashboard` (12/12)
+
+| Test | Kategori |
+|---|---|
+| getSuperadminStats — berhasil | CRUD |
+| getSuperadminStats — tangani sum NULL | Business Rule |
+| getSuperadminStats — bukan superadmin ditolak | Security |
+| getSuperadminStats — error database | Robustness |
+| getFoundationStats — berhasil | CRUD |
+| getFoundationStats — tanpa instituteId ditolak | Business Rule |
+| getFoundationStats — akses ditolak | Security |
+| getFoundationStats — error database | Robustness |
+| getSchoolStats — berhasil | CRUD |
+| getSchoolStats — tanpa instituteId ditolak | Business Rule |
+| getSchoolStats — akses ditolak | Security |
+| getSchoolStats — error database | Robustness |
+
+---
+
+## ✅ Selesai — `fee-payment-export` (7/7)
+
+| Test | Kategori |
+|---|---|
+| getFeePaymentsForExport — tanpa filter berhasil | CRUD |
+| getFeePaymentsForExport — filter feeYear berhasil | CRUD |
+| getFeePaymentsForExport — bukan school ditolak | Security |
+| getFeePaymentsForExport — tanpa instituteId ditolak | Business Rule |
+| getFeePaymentsForExport — filter tidak valid | Validasi |
+| getFeePaymentsForExport — akses ditolak | Security |
+| getFeePaymentsForExport — error database | Robustness |
+
+---
+
+## ✅ Selesai — `auth-helpers` (11/11)
+
+| Test | Kategori |
+|---|---|
+| requireAuth — login berhasil | Security |
+| requireAuth — belum login ditolak | Security |
+| requireRole — role sesuai berhasil | Security |
+| requireRole — role tidak sesuai ditolak | Security |
+| requireRole — belum login ditolak | Security |
+| requireSubappAccess — superadmin bypass | Security |
+| requireSubappAccess — superadmin subapp tidak ada | Validasi |
+| requireSubappAccess — user biasa berhasil | Security |
+| requireSubappAccess — user biasa tidak punya akses | Security |
+| getUserSubapps — superadmin semua subapp | Security |
+| getUserSubapps — user biasa subapp tertentu | Security |
+
+---
+
+## ✅ Selesai — `email` (5/5)
+
+| Test | Kategori |
+|---|---|
+| sendTransferPendingEmail — berhasil | Email |
+| sendTransferPendingEmail — error dari Resend | Robustness |
+| sendTransferPendingEmail — exception pengiriman | Robustness |
+| sendPaymentConfirmedEmail — berhasil | Email |
+| sendPaymentConfirmedEmail — error dari Resend | Robustness |
+
+---
+
+## ✅ Selesai — `fee-payment` (18/18)
 
 | Test | Kategori |
 |---|---|
@@ -45,7 +112,7 @@ Jalankan: `pnpm test` atau `pnpm test:watch`
 
 ---
 
-## ✅ Selesai — `transfer` (26/26)
+## ✅ Selesai — `transfer` (24/24)
 
 | Test | Kategori |
 |---|---|
@@ -76,13 +143,13 @@ Jalankan: `pnpm test` atau `pnpm test:watch`
 
 ---
 
-## Hampir Selesai — `fee` (9/10)
+## ✅ Selesai — `fee` (15/15)
 
 | Test | Status | Kategori |
 |---|---|---|
 | createFee — tarif baru berhasil | ✅ | CRUD |
 | createFee — duplikat feeType+year+semester diblokir | ✅ | Business Rule |
-| createFee — besaran negatif ditolak | ✅ **GAGAL** | Validasi |
+| createFee — besaran negatif ditolak | ✅ | Validasi |
 | createFee — format besaran tidak valid | ✅ | Validasi |
 | createFee — bukan superadmin ditolak | ✅ | Security |
 | updateFee — berhasil jika belum ada pembayaran | ✅ | CRUD |
@@ -98,13 +165,13 @@ Jalankan: `pnpm test` atau `pnpm test:watch`
 
 ---
 
-## Hampir Selesai — `profile` (20/21)
+## ✅ Selesai — `profile` (21/21)
 
 | Test | Status | Kategori |
 |---|---|---|
 | updateProfile — berhasil update nama & email | ✅ | CRUD |
 | updateProfile — tidak cek duplikat jika email sama | ✅ | CRUD |
-| updateProfile — email sudah dipakai user lain | ✅ **GAGAL** | Business Rule |
+| updateProfile — email sudah dipakai user lain | ✅ | Business Rule |
 | updateProfile — nama < 2 karakter | ✅ | Validasi |
 | updateProfile — format email tidak valid | ✅ | Validasi |
 | updateProfile — tanpa login ditolak | ✅ | Security |
@@ -122,7 +189,7 @@ Jalankan: `pnpm test` atau `pnpm test:watch`
 
 ---
 
-## ✅ Telah Diperbaiki (100% Lulus)
+## ✅ Selesai — `institute` (22/22)
 
 | Test | Status | Kategori |
 |---|---|---|
@@ -152,7 +219,7 @@ Jalankan: `pnpm test` atau `pnpm test:watch`
 
 ---
 
-## ✅ Telah Diperbaiki (100% Lulus)
+## ✅ Selesai — `student` (26/26)
 
 | Test | Status | Kategori |
 |---|---|---|
@@ -186,7 +253,7 @@ Jalankan: `pnpm test` atau `pnpm test:watch`
 
 ---
 
-## ✅ Telah Diperbaiki (100% Lulus)
+## ✅ Selesai — `staff` (21/21)
 
 | Test | Status | Kategori |
 |---|---|---|
@@ -220,17 +287,4 @@ Jalankan: `pnpm test` atau `pnpm test:watch`
 | checkStaffDeletable — ada transfer pending diblokir | ✅ | Business Rule |
 | checkStaffDeletable — hanya superadmin | ✅ | Security |
 
-
 ---
-
-## Yang Belum Ada Test File-nya
-
-| Modul/Action | Keterangan |
-|---|---|
-| `fee-payment-export.actions.ts` | Export ke Excel/PDF — belum ada test |
-| `dashboard.actions.ts` | Statistik per role — belum ada test |
-| `auth` (login/register) | Ditangani Better Auth, belum ada test |
-| Email notifications (`lib/email.ts`) | Unit test template HTML — belum ada |
-
----
-
