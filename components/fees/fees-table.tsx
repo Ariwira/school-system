@@ -63,6 +63,7 @@ export function FeesTable({
           <TableHeader>
             <TableRow>
               <TableHead>Tahun Akademik</TableHead>
+              <TableHead>Semester</TableHead>
               <TableHead>Tipe Biaya</TableHead>
               <TableHead>Besaran</TableHead>
               <TableHead className="text-center">Jumlah Pembayaran</TableHead>
@@ -73,6 +74,7 @@ export function FeesTable({
             {data.map((fee) => (
               <TableRow key={fee.id}>
                 <TableCell className="font-medium">{fee.year}</TableCell>
+                <TableCell>{fee.semester === 1 ? 'Ganjil' : 'Genap'}</TableCell>
                 <TableCell>{feeTypeLabels[fee.feeType] ?? fee.feeType}</TableCell>
                 <TableCell>{formatRupiah(fee.amount)}</TableCell>
                 <TableCell className="text-center">{fee.paymentCount}</TableCell>

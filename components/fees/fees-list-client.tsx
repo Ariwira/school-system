@@ -155,7 +155,7 @@ export function FeesListClient() {
             </SheetTitle>
             <SheetDescription>
               {editTarget
-                ? `Perbarui tarif ${editTarget.feeType.toUpperCase()} tahun ${editTarget.year}.`
+                ? `Perbarui tarif ${editTarget.feeType.toUpperCase()} ${editTarget.year} Sem ${editTarget.semester === 1 ? 'Ganjil' : 'Genap'}.`
                 : 'Isi data untuk mendefinisikan tarif biaya baru.'}
             </SheetDescription>
           </SheetHeader>

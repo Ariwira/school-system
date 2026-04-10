@@ -20,6 +20,7 @@ export type ExportFeePaymentRow = {
   nisn: string
   feeType: string
   feeYear: number
+  feeSemester: number
   feeAmount: string
   amountPaid: string
   paymentMethod: string
@@ -120,6 +121,7 @@ export async function getFeePaymentsForExport(
         nisn: students.nisn,
         feeType: fees.feeType,
         feeYear: fees.year,
+        feeSemester: fees.semester,
         feeAmount: fees.amount,
         amountPaid: feePayments.amountPaid,
         paymentMethod: feePayments.paymentMethod,
@@ -142,6 +144,7 @@ export async function getFeePaymentsForExport(
       nisn: row.nisn,
       feeType: row.feeType,
       feeYear: row.feeYear,
+      feeSemester: row.feeSemester,
       feeAmount: row.feeAmount,
       amountPaid: row.amountPaid,
       paymentMethod: row.paymentMethod,

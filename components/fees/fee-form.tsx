@@ -66,6 +66,7 @@ export function FeeForm({ mode, defaultValues, onSuccess, onCancel }: FeeFormPro
     defaultValues: {
       feeType: defaultValues?.feeType ?? 'spp',
       year: defaultValues?.year ?? currentYear,
+      semester: defaultValues?.semester ?? 1,
       amount: defaultAmount,
     },
   })
@@ -142,6 +143,33 @@ export function FeeForm({ mode, defaultValues, onSuccess, onCancel }: FeeFormPro
                       {year}
                     </SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Semester */}
+        <FormField
+          control={form.control}
+          name="semester"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Semester</FormLabel>
+              <Select
+                onValueChange={(val) => field.onChange(Number(val))}
+                defaultValue={String(field.value)}
+                disabled={isSubmitting}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih semester" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="1">Semester 1 (Ganjil)</SelectItem>
+                  <SelectItem value="2">Semester 2 (Genap)</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
