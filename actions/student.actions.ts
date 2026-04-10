@@ -148,11 +148,14 @@ export async function getStudentById(
   id: string,
   subAppKey?: string,
 ): Promise<ActionResult<StudentRow>> {
+  let scopedInstituteId: string | undefined
+
   if (subAppKey) {
     const { subapp } = await requireSubappAccess(subAppKey)
     if (subapp.type !== 'school') {
       return { success: false, error: 'Akses ditolak.' }
     }
+    scopedInstituteId = subapp.instituteId ?? undefined
   } else {
     await requireRole(['superadmin'])
   }
@@ -162,6 +165,10 @@ export async function getStudentById(
   }
 
   try {
+    const whereClause = scopedInstituteId
+      ? and(eq(students.id, id), eq(students.instituteId, scopedInstituteId))
+      : eq(students.id, id)
+
     const rows = await db
       .select({
         id: students.id,
@@ -184,7 +191,7 @@ export async function getStudentById(
       })
       .from(students)
       .innerJoin(institutes, eq(students.instituteId, institutes.id))
-      .where(eq(students.id, id))
+      .where(whereClause)
       .limit(1)
 
     const row = rows[0]
@@ -351,11 +358,14 @@ export async function updateStudent(
   input: UpdateStudentInput,
   subAppKey?: string,
 ): Promise<ActionResult<{ id: string }>> {
+  let scopedInstituteIdForUpdate: string | undefined
+
   if (subAppKey) {
     const { subapp } = await requireSubappAccess(subAppKey)
     if (subapp.type !== 'school') {
       return { success: false, error: 'Akses ditolak.' }
     }
+    scopedInstituteIdForUpdate = subapp.instituteId ?? undefined
   } else {
     await requireRole(['superadmin'])
   }
@@ -385,11 +395,15 @@ export async function updateStudent(
   } = parsed.data
 
   try {
-    // Pastikan siswa ada
+    // Pastikan siswa ada dan milik institusi yang sama
+    const existingWhereClause = scopedInstituteIdForUpdate
+      ? and(eq(students.id, id), eq(students.instituteId, scopedInstituteIdForUpdate))
+      : eq(students.id, id)
+
     const existing = await db
       .select({ id: students.id })
       .from(students)
-      .where(eq(students.id, id))
+      .where(existingWhereClause)
       .limit(1)
 
     if (!existing[0]) {

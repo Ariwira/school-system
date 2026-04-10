@@ -1,6 +1,14 @@
 import { z } from 'zod'
 
-export const feeTypeValues = ['spp'] as const
+export const feeTypeValues = [
+  'registration',
+  'spp',
+  'building',
+  'uniform',
+  'book',
+  'activity',
+  'other',
+] as const
 export type FeeType = (typeof feeTypeValues)[number]
 
 const semesterField = z

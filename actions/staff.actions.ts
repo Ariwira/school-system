@@ -150,8 +150,11 @@ export async function getStaffById(
   id: string,
   subAppKey?: string,
 ): Promise<ActionResult<StaffWithUser>> {
+  let scopedInstituteId: string | undefined
+
   if (subAppKey) {
-    await requireSubappAccess(subAppKey)
+    const { subapp } = await requireSubappAccess(subAppKey)
+    scopedInstituteId = subapp.instituteId ?? undefined
   } else {
     await requireRole(['superadmin'])
   }
@@ -161,6 +164,10 @@ export async function getStaffById(
   }
 
   try {
+    const whereClause = scopedInstituteId
+      ? and(eq(staffs.id, id), eq(staffs.instituteId, scopedInstituteId))
+      : eq(staffs.id, id)
+
     const rows = await db
       .select({
         id: staffs.id,
@@ -186,7 +193,7 @@ export async function getStaffById(
       .from(staffs)
       .innerJoin(institutes, eq(staffs.instituteId, institutes.id))
       .leftJoin(users, eq(staffs.userId, users.id))
-      .where(eq(staffs.id, id))
+      .where(whereClause)
       .limit(1)
 
     const row = rows[0]
@@ -321,8 +328,11 @@ export async function updateStaff(
   input: UpdateStaffInput,
   subAppKey?: string,
 ): Promise<ActionResult<{ id: string }>> {
+  let scopedInstituteIdForUpdate: string | undefined
+
   if (subAppKey) {
-    await requireSubappAccess(subAppKey)
+    const { subapp } = await requireSubappAccess(subAppKey)
+    scopedInstituteIdForUpdate = subapp.instituteId ?? undefined
   } else {
     await requireRole(['superadmin'])
   }
@@ -341,11 +351,15 @@ export async function updateStaff(
     parsed.data
 
   try {
-    // Pastikan staf ada
+    // Pastikan staf ada dan milik institusi yang sama
+    const existingWhereClause = scopedInstituteIdForUpdate
+      ? and(eq(staffs.id, id), eq(staffs.instituteId, scopedInstituteIdForUpdate))
+      : eq(staffs.id, id)
+
     const existing = await db
       .select({ id: staffs.id, instituteId: staffs.instituteId })
       .from(staffs)
-      .where(eq(staffs.id, id))
+      .where(existingWhereClause)
       .limit(1)
 
     if (!existing[0]) {

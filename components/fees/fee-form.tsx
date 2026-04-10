@@ -38,7 +38,13 @@ interface FeeFormProps {
 }
 
 const feeTypeLabels: Record<string, string> = {
+  registration: 'Pendaftaran',
   spp: 'SPP',
+  building: 'Gedung',
+  uniform: 'Seragam',
+  book: 'Buku',
+  activity: 'Kegiatan',
+  other: 'Lainnya',
 }
 
 const currentYear = new Date().getFullYear()
@@ -112,7 +118,9 @@ export function FeeForm({ mode, defaultValues, onSuccess, onCancel }: FeeFormPro
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="spp">{feeTypeLabels['spp']}</SelectItem>
+                  {Object.entries(feeTypeLabels).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>{label}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <FormMessage />

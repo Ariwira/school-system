@@ -22,8 +22,8 @@ interface FeesTableProps {
 }
 
 const feeTypeLabels: Record<string, string> = {
-  spp: 'SPP',
   registration: 'Pendaftaran',
+  spp: 'SPP',
   building: 'Gedung',
   uniform: 'Seragam',
   book: 'Buku',
