@@ -27,6 +27,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { UrlPagination } from '@/components/data-table/url-pagination'
 import { toggleStaffStatus, unlinkUserAccount } from '@/actions/staff.actions'
 import type { StaffWithUser } from '@/lib/validations/staff'
 
@@ -35,7 +36,6 @@ interface StaffsTableProps {
   total: number
   page: number
   perPage: number
-  onPageChange: (page: number) => void
   onEdit: (staff: StaffWithUser) => void
   onLinkUser: (staff: StaffWithUser) => void
   onRefresh: () => void
@@ -63,7 +63,6 @@ export function StaffsTable({
   total,
   page,
   perPage,
-  onPageChange,
   onEdit,
   onLinkUser,
   onRefresh,
@@ -73,8 +72,6 @@ export function StaffsTable({
   const [isPending, startTransition] = useTransition()
   const [toggleTarget, setToggleTarget] = useState<StaffWithUser | null>(null)
   const [unlinkTarget, setUnlinkTarget] = useState<StaffWithUser | null>(null)
-
-  const totalPages = Math.ceil(total / perPage)
 
   const handleToggleStatus = useCallback(() => {
     if (!toggleTarget) return
@@ -232,32 +229,12 @@ export function StaffsTable({
       </div>
 
       {/* Paginasi */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between pt-4">
-          <p className="text-sm text-muted-foreground">
-            Menampilkan {(page - 1) * perPage + 1}–{Math.min(page * perPage, total)} dari{' '}
-            {total} staf
-          </p>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page <= 1 || isPending}
-              onClick={() => onPageChange(page - 1)}
-            >
-              Sebelumnya
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page >= totalPages || isPending}
-              onClick={() => onPageChange(page + 1)}
-            >
-              Berikutnya
-            </Button>
-          </div>
-        </div>
-      )}
+      <UrlPagination
+        total={total}
+        page={page}
+        perPage={perPage}
+        itemLabel="staf"
+      />
 
       {/* Dialog konfirmasi toggle status */}
       <Dialog

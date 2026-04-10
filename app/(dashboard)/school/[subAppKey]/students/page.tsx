@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { requireSubappAccess } from '@/lib/auth-helpers'
 import { StudentsListClient } from '@/components/students/students-list-client'
@@ -39,10 +40,12 @@ export default async function SchoolStudentsPage({ params }: SchoolStudentsPageP
         </p>
       </div>
 
-      <StudentsListClient
-        subAppKey={subAppKey}
-        instituteId={instituteId}
-      />
+      <Suspense fallback={<div className="rounded-md border p-8 text-center text-muted-foreground text-sm">Memuat data...</div>}>
+        <StudentsListClient
+          subAppKey={subAppKey}
+          instituteId={instituteId}
+        />
+      </Suspense>
     </div>
   )
 }

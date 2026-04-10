@@ -1,16 +1,11 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { PlusIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { FilterSelect } from '@/components/data-table/filter-select'
 import { TransfersTable } from './transfers-table'
 import { CreateTransferSheet } from './create-transfer-sheet'
 import { getTransfers } from '@/actions/transfer.actions'
@@ -23,7 +18,7 @@ interface TransfersListClientProps {
   basePath: string
 }
 
-const statusOptions: { value: TransferStatus | 'all'; label: string }[] = [
+const statusOptions = [
   { value: 'all', label: 'Semua Status' },
   { value: 'pending', label: 'Menunggu' },
   { value: 'approved', label: 'Disetujui' },
@@ -31,13 +26,13 @@ const statusOptions: { value: TransferStatus | 'all'; label: string }[] = [
   { value: 'cancelled', label: 'Dibatalkan' },
 ]
 
-const directionOptions: { value: 'all' | 'outgoing' | 'incoming'; label: string }[] = [
+const directionOptions = [
   { value: 'all', label: 'Semua Arah' },
   { value: 'outgoing', label: 'Keluar' },
   { value: 'incoming', label: 'Masuk' },
 ]
 
-const methodOptions: { value: TransferMethod | 'all'; label: string }[] = [
+const methodOptions = [
   { value: 'all', label: 'Semua Metode' },
   { value: 'cash', label: 'Tunai' },
   { value: 'bank_transfer', label: 'Transfer Bank' },
@@ -50,65 +45,54 @@ export function TransfersListClient({
   scopedInstituteId,
   basePath,
 }: TransfersListClientProps) {
+  const searchParams = useSearchParams()
+
+  const statusFilter = searchParams.get('status') ?? 'all'
+  const directionFilter = searchParams.get('direction') ?? 'all'
+  const methodFilter = searchParams.get('method') ?? 'all'
+  const page = Number(searchParams.get('page') ?? '1')
+
   const [data, setData] = useState<TransferRow[]>([])
   const [total, setTotal] = useState(0)
-  const [page, setPage] = useState(1)
-  const [statusFilter, setStatusFilter] = useState<TransferStatus | 'all'>('all')
-  const [directionFilter, setDirectionFilter] = useState<'all' | 'outgoing' | 'incoming'>('all')
-  const [methodFilter, setMethodFilter] = useState<TransferMethod | 'all'>('all')
   const [loading, setLoading] = useState(true)
   const [sheetOpen, setSheetOpen] = useState(false)
 
   const perPage = 10
 
-  const fetchData = useCallback(
-    async (
-      currentPage: number,
-      currentStatus: TransferStatus | 'all',
-      currentDirection: 'all' | 'outgoing' | 'incoming',
-      currentMethod: TransferMethod | 'all',
-    ) => {
-      setLoading(true)
-      try {
-        const result = await getTransfers(
-          {
-            page: currentPage,
-            perPage,
-            status: currentStatus !== 'all' ? currentStatus : undefined,
-            direction: currentDirection !== 'all' ? currentDirection : undefined,
-            transferMethod: currentMethod !== 'all' ? currentMethod : undefined,
-          },
-          subAppKey,
-        )
+  const fetchData = useCallback(async () => {
+    setLoading(true)
+    try {
+      const result = await getTransfers(
+        {
+          page,
+          perPage,
+          status: statusFilter !== 'all' ? (statusFilter as TransferStatus) : undefined,
+          direction: directionFilter !== 'all' ? (directionFilter as 'outgoing' | 'incoming') : undefined,
+          transferMethod: methodFilter !== 'all' ? (methodFilter as TransferMethod) : undefined,
+        },
+        subAppKey,
+      )
 
-        if (result.success) {
-          setData(result.data.data)
-          setTotal(result.data.total)
-        } else {
-          toast.error(result.error)
-        }
-      } catch {
-        toast.error('Gagal memuat data transfer.')
-      } finally {
-        setLoading(false)
+      if (result.success) {
+        setData(result.data.data)
+        setTotal(result.data.total)
+      } else {
+        toast.error(result.error)
       }
-    },
-    [subAppKey],
-  )
+    } catch {
+      toast.error('Gagal memuat data transfer.')
+    } finally {
+      setLoading(false)
+    }
+  }, [page, statusFilter, directionFilter, methodFilter, subAppKey])
 
   useEffect(() => {
-    setPage(1)
-    fetchData(1, statusFilter, directionFilter, methodFilter)
-  }, [statusFilter, directionFilter, methodFilter, fetchData])
-
-  function handlePageChange(newPage: number) {
-    setPage(newPage)
-    fetchData(newPage, statusFilter, directionFilter, methodFilter)
-  }
+    fetchData()
+  }, [fetchData])
 
   function handleFormSuccess() {
     setSheetOpen(false)
-    fetchData(page, statusFilter, directionFilter, methodFilter)
+    fetchData()
   }
 
   return (
@@ -116,57 +100,26 @@ export function TransfersListClient({
       {/* Toolbar */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
-          <Select
-            value={statusFilter}
-            onValueChange={(val) => setStatusFilter(val as TransferStatus | 'all')}
-          >
-            <SelectTrigger className="w-full sm:w-[160px]">
-              <SelectValue placeholder="Semua Status" />
-            </SelectTrigger>
-            <SelectContent>
-              {statusOptions.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
+          <FilterSelect
+            options={statusOptions}
+            paramKey="status"
+            placeholder="Semua Status"
+            className="w-[160px]"
+          />
           {scopedInstituteId && (
-            <Select
-              value={directionFilter}
-              onValueChange={(val) =>
-                setDirectionFilter(val as 'all' | 'outgoing' | 'incoming')
-              }
-            >
-              <SelectTrigger className="w-full sm:w-[150px]">
-                <SelectValue placeholder="Semua Arah" />
-              </SelectTrigger>
-              <SelectContent>
-                {directionOptions.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <FilterSelect
+              options={directionOptions}
+              paramKey="direction"
+              placeholder="Semua Arah"
+              className="w-[150px]"
+            />
           )}
-
-          <Select
-            value={methodFilter}
-            onValueChange={(val) => setMethodFilter(val as TransferMethod | 'all')}
-          >
-            <SelectTrigger className="w-full sm:w-[160px]">
-              <SelectValue placeholder="Semua Metode" />
-            </SelectTrigger>
-            <SelectContent>
-              {methodOptions.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <FilterSelect
+            options={methodOptions}
+            paramKey="method"
+            placeholder="Semua Metode"
+            className="w-[160px]"
+          />
         </div>
 
         <Button onClick={() => setSheetOpen(true)}>
@@ -186,8 +139,7 @@ export function TransfersListClient({
           total={total}
           page={page}
           perPage={perPage}
-          onPageChange={handlePageChange}
-          onRefresh={() => fetchData(page, statusFilter, directionFilter, methodFilter)}
+          onRefresh={fetchData}
           subAppKey={subAppKey}
           subappType={subappType}
           scopedInstituteId={scopedInstituteId}

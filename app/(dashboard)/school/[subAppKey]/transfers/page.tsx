@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { requireSubappAccess } from '@/lib/auth-helpers'
 import { TransfersListClient } from '@/components/transfers/transfers-list-client'
@@ -39,12 +40,14 @@ export default async function SchoolTransfersPage({ params }: SchoolTransfersPag
         </p>
       </div>
 
-      <TransfersListClient
-        subAppKey={subAppKey}
-        subappType="school"
-        scopedInstituteId={scopedInstituteId}
-        basePath={`/school/${subAppKey}/transfers`}
-      />
+      <Suspense fallback={<div className="rounded-md border p-8 text-center text-muted-foreground text-sm">Memuat data...</div>}>
+        <TransfersListClient
+          subAppKey={subAppKey}
+          subappType="school"
+          scopedInstituteId={scopedInstituteId}
+          basePath={`/school/${subAppKey}/transfers`}
+        />
+      </Suspense>
     </div>
   )
 }

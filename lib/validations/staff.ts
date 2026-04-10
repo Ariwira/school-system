@@ -73,10 +73,18 @@ export const updateStaffSchema = z.object({
   status: z.enum(['active', 'inactive', 'resigned']),
 })
 
+export const staffStatusValues = ['active', 'inactive', 'resigned'] as const
+export type StaffStatus = (typeof staffStatusValues)[number]
+
+export const staffDepartmentValues = ['academic', 'administration', 'finance', 'it', 'hr', 'other'] as const
+export type StaffDepartment = (typeof staffDepartmentValues)[number]
+
 export const getStaffsSchema = z.object({
   page: z.number().int().min(1).default(1),
   perPage: z.number().int().min(1).max(100).default(10),
   search: z.string().optional(),
+  status: z.enum(staffStatusValues).optional(),
+  department: z.enum(staffDepartmentValues).optional(),
   instituteId: z.string().uuid().optional(),
 })
 

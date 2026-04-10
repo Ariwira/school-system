@@ -21,6 +21,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { UrlPagination } from '@/components/data-table/url-pagination'
 import { confirmPayment } from '@/actions/fee-payment.actions'
 import type { FeePaymentRow, PaymentStatus, PaymentMethod } from '@/lib/validations/fee-payment'
 
@@ -29,7 +30,6 @@ interface FeePaymentsTableProps {
   total: number
   page: number
   perPage: number
-  onPageChange: (page: number) => void
   onRefresh: () => void
   subAppKey?: string
 }
@@ -87,14 +87,11 @@ export function FeePaymentsTable({
   total,
   page,
   perPage,
-  onPageChange,
   onRefresh,
   subAppKey,
 }: FeePaymentsTableProps) {
   const [isPending, startTransition] = useTransition()
   const [confirmTarget, setConfirmTarget] = useState<FeePaymentRow | null>(null)
-
-  const totalPages = Math.ceil(total / perPage)
 
   const handleConfirm = useCallback(() => {
     if (!confirmTarget) return
@@ -204,32 +201,12 @@ export function FeePaymentsTable({
       </div>
 
       {/* Paginasi */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between pt-4">
-          <p className="text-sm text-muted-foreground">
-            Menampilkan {(page - 1) * perPage + 1}–{Math.min(page * perPage, total)} dari {total}{' '}
-            pembayaran
-          </p>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page <= 1 || isPending}
-              onClick={() => onPageChange(page - 1)}
-            >
-              Sebelumnya
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page >= totalPages || isPending}
-              onClick={() => onPageChange(page + 1)}
-            >
-              Berikutnya
-            </Button>
-          </div>
-        </div>
-      )}
+      <UrlPagination
+        total={total}
+        page={page}
+        perPage={perPage}
+        itemLabel="pembayaran"
+      />
 
       {/* Dialog konfirmasi pembayaran */}
       <Dialog open={!!confirmTarget} onOpenChange={(open) => !open && setConfirmTarget(null)}>

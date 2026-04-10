@@ -28,6 +28,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { UrlPagination } from '@/components/data-table/url-pagination'
 import {
   activateStudent,
   deactivateStudent,
@@ -40,7 +41,6 @@ interface StudentsTableProps {
   total: number
   page: number
   perPage: number
-  onPageChange: (page: number) => void
   onEdit: (student: StudentRow) => void
   onRefresh: () => void
   subAppKey?: string
@@ -70,7 +70,6 @@ export function StudentsTable({
   total,
   page,
   perPage,
-  onPageChange,
   onEdit,
   onRefresh,
   subAppKey,
@@ -78,8 +77,6 @@ export function StudentsTable({
 }: StudentsTableProps) {
   const [isPending, startTransition] = useTransition()
   const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null)
-
-  const totalPages = Math.ceil(total / perPage)
 
   const handleConfirm = useCallback(() => {
     if (!confirmAction) return
@@ -300,32 +297,12 @@ export function StudentsTable({
       </div>
 
       {/* Paginasi */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between pt-4">
-          <p className="text-sm text-muted-foreground">
-            Menampilkan {(page - 1) * perPage + 1}–{Math.min(page * perPage, total)} dari{' '}
-            {total} siswa
-          </p>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page <= 1 || isPending}
-              onClick={() => onPageChange(page - 1)}
-            >
-              Sebelumnya
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page >= totalPages || isPending}
-              onClick={() => onPageChange(page + 1)}
-            >
-              Berikutnya
-            </Button>
-          </div>
-        </div>
-      )}
+      <UrlPagination
+        total={total}
+        page={page}
+        perPage={perPage}
+        itemLabel="siswa"
+      />
 
       {/* Dialog konfirmasi aksi status */}
       <Dialog
