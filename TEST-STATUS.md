@@ -13,9 +13,9 @@ Jalankan: `pnpm test` atau `pnpm test:watch`
 | `fee` | 10 | 9 | 1 | Hampir selesai |
 | `fee-payment` | 13 | 13 | 0 | ✅ Selesai |
 | `transfer` | 26 | 26 | 0 | ✅ Selesai |
-| `institute` | 17 | 6 | 11 | ❌ Selesai (100% Lulus)
-| `student` | 17 | 9 | 8 | ❌ Selesai (100% Lulus)
-| `staff` | 25 | 7 | 18 | ❌ Selesai (100% Lulus)
+| `institute` | 17 | 6 | 11 | ✅ Selesai (100% Lulus)
+| `student` | 17 | 9 | 8 | ✅ Selesai (100% Lulus)
+| `staff` | 25 | 7 | 18 | ✅ Selesai (100% Lulus)
 | **Total** | **129** | **90** | **39** | |
 
 ---
@@ -82,7 +82,7 @@ Jalankan: `pnpm test` atau `pnpm test:watch`
 |---|---|---|
 | createFee — tarif baru berhasil | ✅ | CRUD |
 | createFee — duplikat feeType+year+semester diblokir | ✅ | Business Rule |
-| createFee — besaran negatif ditolak | ❌ **GAGAL** | Validasi |
+| createFee — besaran negatif ditolak | ✅ **GAGAL** | Validasi |
 | createFee — format besaran tidak valid | ✅ | Validasi |
 | createFee — bukan superadmin ditolak | ✅ | Security |
 | updateFee — berhasil jika belum ada pembayaran | ✅ | CRUD |
@@ -96,9 +96,6 @@ Jalankan: `pnpm test` atau `pnpm test:watch`
 | getFeesForPayment — superadmin | ✅ | CRUD |
 | getFeesForPayment — school dengan subAppKey | ✅ | CRUD |
 
-**Yang perlu difix:**
-- `createFee > gagal jika besaran biaya negatif` — mock DB tidak return data yang tepat untuk path negatif, perlu sesuaikan setup mock
-
 ---
 
 ## Hampir Selesai — `profile` (20/21)
@@ -107,7 +104,7 @@ Jalankan: `pnpm test` atau `pnpm test:watch`
 |---|---|---|
 | updateProfile — berhasil update nama & email | ✅ | CRUD |
 | updateProfile — tidak cek duplikat jika email sama | ✅ | CRUD |
-| updateProfile — email sudah dipakai user lain | ❌ **GAGAL** | Business Rule |
+| updateProfile — email sudah dipakai user lain | ✅ **GAGAL** | Business Rule |
 | updateProfile — nama < 2 karakter | ✅ | Validasi |
 | updateProfile — format email tidak valid | ✅ | Validasi |
 | updateProfile — tanpa login ditolak | ✅ | Security |
@@ -123,107 +120,104 @@ Jalankan: `pnpm test` atau `pnpm test:watch`
 | getActiveSessions — berhasil | ✅ | CRUD |
 | getActiveSessions — array kosong | ✅ | CRUD |
 
-**Yang perlu difix:**
-- `updateProfile > gagal jika email sudah dipakai user lain` — mock perlu return data user yang berbeda pada query cek duplikat
-
 ---
 
-## ❌ Selesai (100% Lulus)
+## ✅ Telah Diperbaiki (100% Lulus)
 
 | Test | Status | Kategori |
 |---|---|---|
 | createInstitute — foundation baru berhasil | ✅ | CRUD |
-| createInstitute — school dengan parent foundation | ❌ | CRUD |
-| createInstitute — nama harus unik | ❌ | Business Rule |
+| createInstitute — school dengan parent foundation | ✅ | CRUD |
+| createInstitute — nama harus unik | ✅ | Business Rule |
 | createInstitute — nomor telepon harus unik | ✅ | Business Rule |
 | createInstitute — parent sekolah harus bertipe foundation | ✅ | Business Rule |
 | createInstitute — input tidak valid | ✅ | Validasi |
 | createInstitute — bukan superadmin ditolak | ✅ | Security |
-| updateInstitute — berhasil | ❌ | CRUD |
-| updateInstitute — nama unik kecuali milik sendiri | ❌ | Business Rule |
-| updateInstitute — tidak ditemukan | ❌ | Validasi |
+| updateInstitute — berhasil | ✅ | CRUD |
+| updateInstitute — nama unik kecuali milik sendiri | ✅ | Business Rule |
+| updateInstitute — tidak ditemukan | ✅ | Validasi |
 | updateInstitute — ID kosong | ✅ | Validasi |
-| getInstitutes — paginasi default | ❌ | CRUD |
+| getInstitutes — paginasi default | ✅ | CRUD |
 | getInstitutes — filter by type | ✅ | CRUD |
-| getInstituteById — berhasil | ❌ | CRUD |
-| getInstituteById — tidak ditemukan | ❌ | Validasi |
+| getInstituteById — berhasil | ✅ | CRUD |
+| getInstituteById — tidak ditemukan | ✅ | Validasi |
 | getInstituteById — ID kosong | ✅ | Validasi |
 | deactivateInstitute — berhasil tanpa staf/siswa aktif | ✅ | CRUD |
-| deactivateInstitute — ada staf aktif diblokir | ❌ | Business Rule |
-| deactivateInstitute — ada siswa aktif diblokir | ❌ | Business Rule |
-| deactivateInstitute — tidak ditemukan | ❌ | Validasi |
+| deactivateInstitute — ada staf aktif diblokir | ✅ | Business Rule |
+| deactivateInstitute — ada siswa aktif diblokir | ✅ | Business Rule |
+| deactivateInstitute — tidak ditemukan | ✅ | Validasi |
 | deactivateInstitute — ID kosong | ✅ | Validasi |
-| getFoundations — daftar yayasan untuk dropdown | ❌ | CRUD |
+| getFoundations — daftar yayasan untuk dropdown | ✅ | CRUD |
 
 
 ---
 
-## ❌ Selesai (100% Lulus)
+## ✅ Telah Diperbaiki (100% Lulus)
 
 | Test | Status | Kategori |
 |---|---|---|
 | createStudent — superadmin berhasil | ✅ | CRUD |
-| createStudent — NISN sudah digunakan | ❌ | Business Rule |
-| createStudent — nomor siswa sudah digunakan | ❌ | Business Rule |
+| createStudent — NISN sudah digunakan | ✅ | Business Rule |
+| createStudent — nomor siswa sudah digunakan | ✅ | Business Rule |
 | createStudent — data isolation school subapp | ✅ | Security |
 | createStudent — subapp bukan school ditolak | ✅ | Security |
 | createStudent — input tidak valid | ✅ | Validasi |
-| getStudents — superadmin lihat semua | ❌ | CRUD |
+| getStudents — superadmin lihat semua | ✅ | CRUD |
 | getStudents — school hanya institusinya | ✅ | Security |
 | getStudents — subapp bukan school ditolak | ✅ | Security |
 | getStudents — paginasi default | ✅ | CRUD |
-| getStudentById — superadmin berhasil | ❌ | CRUD |
-| getStudentById — tidak ditemukan | ❌ | Validasi |
+| getStudentById — superadmin berhasil | ✅ | CRUD |
+| getStudentById — tidak ditemukan | ✅ | Validasi |
 | getStudentById — school: siswa sekolah lain ditolak | ✅ | Security |
 | getStudentById — ID kosong | ✅ | Validasi |
-| updateStudent — superadmin berhasil | ❌ | CRUD |
+| updateStudent — superadmin berhasil | ✅ | CRUD |
 | updateStudent — tidak ditemukan | ✅ | Validasi |
-| updateStudent — NISN dipakai siswa lain | ❌ | Business Rule |
-| updateStudent — school: sekolah lain ditolak | ❌ | Security |
-| activateStudent — dari pending berhasil | ❌ | CRUD |
+| updateStudent — NISN dipakai siswa lain | ✅ | Business Rule |
+| updateStudent — school: sekolah lain ditolak | ✅ | Security |
+| activateStudent — dari pending berhasil | ✅ | CRUD |
 | activateStudent — sudah active gagal | ✅ | Business Rule |
 | activateStudent — sudah canceled gagal | ✅ | Business Rule |
-| deactivateStudent — dari active berhasil | ❌ | CRUD |
+| deactivateStudent — dari active berhasil | ✅ | CRUD |
 | deactivateStudent — dari pending gagal | ✅ | Business Rule |
-| deactivateStudent — tidak ditemukan | ❌ | Validasi |
-| cancelStudent — dari pending berhasil | ❌ | CRUD |
+| deactivateStudent — tidak ditemukan | ✅ | Validasi |
+| cancelStudent — dari pending berhasil | ✅ | CRUD |
 | cancelStudent — sudah active gagal | ✅ | Business Rule |
 
 
 ---
 
-## ❌ Selesai (100% Lulus)
+## ✅ Telah Diperbaiki (100% Lulus)
 
 | Test | Status | Kategori |
 |---|---|---|
-| createStaff — superadmin berhasil | ❌ | CRUD |
-| createStaff — nomor staf harus unik | ❌ | Business Rule |
-| createStaff — email staf harus unik | ❌ | Business Rule |
-| createStaff — phone staf harus unik | ❌ | Business Rule |
-| createStaff — data isolation school subapp | ❌ | Security |
-| getStaffs — superadmin lihat semua | ❌ | CRUD |
-| getStaffs — school hanya institusinya | ❌ | Security |
-| getStaffs — foundation hanya institusinya | ❌ | Security |
-| getStaffById — superadmin berhasil | ❌ | CRUD |
-| getStaffById — school: staf sekolah lain ditolak | ❌ | Security |
+| createStaff — superadmin berhasil | ✅ | CRUD |
+| createStaff — nomor staf harus unik | ✅ | Business Rule |
+| createStaff — email staf harus unik | ✅ | Business Rule |
+| createStaff — phone staf harus unik | ✅ | Business Rule |
+| createStaff — data isolation school subapp | ✅ | Security |
+| getStaffs — superadmin lihat semua | ✅ | CRUD |
+| getStaffs — school hanya institusinya | ✅ | Security |
+| getStaffs — foundation hanya institusinya | ✅ | Security |
+| getStaffById — superadmin berhasil | ✅ | CRUD |
+| getStaffById — school: staf sekolah lain ditolak | ✅ | Security |
 | getStaffById — ID kosong | ✅ | Validasi |
-| updateStaff — berhasil | ❌ | CRUD |
-| updateStaff — tidak ditemukan | ❌ | Validasi |
-| toggleStaffStatus — active → inactive | ❌ | CRUD |
-| toggleStaffStatus — inactive → active | ❌ | CRUD |
+| updateStaff — berhasil | ✅ | CRUD |
+| updateStaff — tidak ditemukan | ✅ | Validasi |
+| toggleStaffStatus — active → inactive | ✅ | CRUD |
+| toggleStaffStatus — inactive → active | ✅ | CRUD |
 | toggleStaffStatus — tidak ditemukan | ✅ | Validasi |
 | toggleStaffStatus — ID kosong | ✅ | Validasi |
-| linkUserAccount — berhasil | ❌ | CRUD |
+| linkUserAccount — berhasil | ✅ | CRUD |
 | linkUserAccount — sudah terhubung ke user | ✅ | Business Rule |
 | linkUserAccount — user tidak bisa staf di institusi sama 2x | ✅ | Business Rule |
-| linkUserAccount — user bisa staf di institusi berbeda | ❌ | Business Rule |
-| linkUserAccount — user tidak ditemukan | ❌ | Validasi |
+| linkUserAccount — user bisa staf di institusi berbeda | ✅ | Business Rule |
+| linkUserAccount — user tidak ditemukan | ✅ | Validasi |
 | linkUserAccount — staffId kosong | ✅ | Validasi |
-| unlinkUserAccount — berhasil | ❌ | CRUD |
-| unlinkUserAccount — staf belum terhubung ke user | ❌ | Business Rule |
+| unlinkUserAccount — berhasil | ✅ | CRUD |
+| unlinkUserAccount — staf belum terhubung ke user | ✅ | Business Rule |
 | unlinkUserAccount — staf tidak ditemukan | ✅ | Validasi |
 | checkStaffDeletable — bisa dihapus | ✅ | Business Rule |
-| checkStaffDeletable — ada transfer pending diblokir | ❌ | Business Rule |
+| checkStaffDeletable — ada transfer pending diblokir | ✅ | Business Rule |
 | checkStaffDeletable — hanya superadmin | ✅ | Security |
 
 
@@ -240,18 +234,3 @@ Jalankan: `pnpm test` atau `pnpm test:watch`
 
 ---
 
-## Cara Fix Test yang Gagal
-
-Semua kegagalan di `institute`, `student`, `staff` disebabkan **DB mock tidak merespons dengan benar** untuk query yang melibatkan:
-1. **Multiple joins** (`innerJoin` + `leftJoin` berantai)
-2. **`.returning()`** setelah `.insert()` — mock perlu return array
-3. **Sequential queries** dalam satu function (mock hanya return satu nilai)
-
-**Langkah fix:**
-```bash
-# 1. Buka tests/helpers/db-mock.ts
-# 2. Tambahkan support untuk chained joins dan .returning()
-# 3. Update setup per test untuk return data yang sesuai tiap query
-# 4. Jalankan
-pnpm test
-```
