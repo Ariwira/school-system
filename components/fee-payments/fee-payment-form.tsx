@@ -42,6 +42,7 @@ interface FeeOption {
   id: string
   feeType: string
   year: number
+  semester: number
   amount: string
 }
 
@@ -285,7 +286,7 @@ export function FeePaymentForm({ onSuccess, onCancel, subAppKey }: FeePaymentFor
                   ) : (
                     feeOptions.map((fee) => (
                       <SelectItem key={fee.id} value={fee.id}>
-                        {fee.feeType.toUpperCase()} {fee.year} — Rp{' '}
+                        {fee.feeType.toUpperCase()} {fee.year} Sem {fee.semester === 1 ? 'Ganjil' : 'Genap'} — Rp{' '}
                         {Number(fee.amount).toLocaleString('id-ID')}
                       </SelectItem>
                     ))

@@ -20,7 +20,13 @@ import type { FeeRow, FeeType } from '@/lib/validations/fee'
 
 const feeTypeOptions = [
   { value: 'all', label: 'Semua Tipe' },
+  { value: 'registration', label: 'Pendaftaran' },
   { value: 'spp', label: 'SPP' },
+  { value: 'building', label: 'Gedung' },
+  { value: 'uniform', label: 'Seragam' },
+  { value: 'book', label: 'Buku' },
+  { value: 'activity', label: 'Kegiatan' },
+  { value: 'other', label: 'Lainnya' },
 ]
 
 export function FeesListClient() {
@@ -155,7 +161,7 @@ export function FeesListClient() {
             </SheetTitle>
             <SheetDescription>
               {editTarget
-                ? `Perbarui tarif ${editTarget.feeType.toUpperCase()} tahun ${editTarget.year}.`
+                ? `Perbarui tarif ${editTarget.feeType.toUpperCase()} ${editTarget.year} Sem ${editTarget.semester === 1 ? 'Ganjil' : 'Genap'}.`
                 : 'Isi data untuk mendefinisikan tarif biaya baru.'}
             </SheetDescription>
           </SheetHeader>

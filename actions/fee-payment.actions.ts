@@ -100,6 +100,7 @@ export async function getFeePayments(
         feeId: feePayments.feeId,
         feeType: fees.feeType,
         feeYear: fees.year,
+        feeSemester: fees.semester,
         feeAmount: fees.amount,
         amountPaid: feePayments.amountPaid,
         paymentMethod: feePayments.paymentMethod,
@@ -131,6 +132,7 @@ export async function getFeePayments(
       ...row,
       feeType: row.feeType,
       feeYear: row.feeYear,
+      feeSemester: row.feeSemester,
       receipt: row.receipt ?? null,
       receiptFile: row.receiptFile ?? null,
     }))
@@ -185,6 +187,7 @@ export async function getFeePaymentsByStudent(
         feeId: feePayments.feeId,
         feeType: fees.feeType,
         feeYear: fees.year,
+        feeSemester: fees.semester,
         feeAmount: fees.amount,
         amountPaid: feePayments.amountPaid,
         paymentMethod: feePayments.paymentMethod,
@@ -205,6 +208,7 @@ export async function getFeePaymentsByStudent(
       ...row,
       feeType: row.feeType,
       feeYear: row.feeYear,
+      feeSemester: row.feeSemester,
       receipt: row.receipt ?? null,
       receiptFile: row.receiptFile ?? null,
     }))
@@ -426,6 +430,7 @@ async function sendPaymentConfirmedNotification(params: {
         studentInstituteId: students.instituteId,
         feeType: fees.feeType,
         feeYear: fees.year,
+        feeSemester: fees.semester,
       })
       .from(feePayments)
       .innerJoin(students, eq(feePayments.studentId, students.id))
@@ -464,6 +469,7 @@ async function sendPaymentConfirmedNotification(params: {
           studentNumber: detail.studentNumber,
           feeType: detail.feeType,
           feeYear: detail.feeYear,
+          feeSemester: detail.feeSemester,
           amountPaid: detail.amountPaid,
           paymentMethod: detail.paymentMethod,
           confirmedAt: new Date(),

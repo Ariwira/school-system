@@ -91,6 +91,7 @@ export async function sendPaymentConfirmedEmail(
     studentNumber: string
     feeType: string
     feeYear: number
+    feeSemester: number
     amountPaid: string
     paymentMethod: string
     confirmedAt: Date
@@ -124,12 +125,15 @@ export async function sendPaymentConfirmedEmail(
       qris: 'QRIS',
     }
 
+    const semesterLabel = params.feeSemester === 1 ? 'Ganjil' : 'Genap'
+
     const html = buildPaymentConfirmedHtml({
       adminName: params.adminName,
       studentName: params.studentName,
       studentNumber: params.studentNumber,
       feeType: feeTypeLabel[params.feeType] ?? params.feeType,
       feeYear: params.feeYear,
+      feeSemester: semesterLabel,
       formattedAmount,
       paymentMethod: methodLabel[params.paymentMethod] ?? params.paymentMethod,
       formattedDate,
@@ -138,7 +142,7 @@ export async function sendPaymentConfirmedEmail(
     const { error } = await resend.emails.send({
       from: FROM_EMAIL,
       to,
-      subject: `[Konfirmasi Pembayaran] ${params.studentName} — ${feeTypeLabel[params.feeType] ?? params.feeType} ${params.feeYear}`,
+      subject: `[Konfirmasi Pembayaran] ${params.studentName} — ${feeTypeLabel[params.feeType] ?? params.feeType} ${params.feeYear} Sem ${semesterLabel}`,
       html,
     })
 
@@ -241,6 +245,7 @@ function buildPaymentConfirmedHtml(params: {
   studentNumber: string
   feeType: string
   feeYear: number
+  feeSemester: string
   formattedAmount: string
   paymentMethod: string
   formattedDate: string
@@ -287,6 +292,7 @@ function buildPaymentConfirmedHtml(params: {
                     ${buildDetailRow('No. Induk', escapeHtml(params.studentNumber))}
                     ${buildDetailRow('Jenis Biaya', params.feeType)}
                     ${buildDetailRow('Tahun', String(params.feeYear))}
+                    ${buildDetailRow('Semester', params.feeSemester)}
                     ${buildDetailRow('Jumlah Dibayar', `<strong style="color:#059669;font-size:16px;">${params.formattedAmount}</strong>`)}
                     ${buildDetailRow('Metode Pembayaran', params.paymentMethod)}
                     ${buildDetailRow('Dikonfirmasi Pada', params.formattedDate)}

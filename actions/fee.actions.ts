@@ -35,13 +35,14 @@ export async function getFees(
     perPage: input.perPage ?? 10,
     feeType: input.feeType,
     year: input.year,
+    semester: input.semester,
   })
 
   if (!parsed.success) {
     return { success: false, error: 'Parameter tidak valid.' }
   }
 
-  const { page, perPage, feeType, year } = parsed.data
+  const { page, perPage, feeType, year, semester } = parsed.data
   const offset = (page - 1) * perPage
 
   try {
@@ -55,6 +56,10 @@ export async function getFees(
       conditions.push(eq(fees.year, year))
     }
 
+    if (semester) {
+      conditions.push(eq(fees.semester, semester))
+    }
+
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined
 
     const rows = await db
@@ -62,6 +67,7 @@ export async function getFees(
         id: fees.id,
         feeType: fees.feeType,
         year: fees.year,
+        semester: fees.semester,
         amount: fees.amount,
         paymentCount: sql<number>`cast(count(${feePayments.id}) as int)`,
         createdAt: fees.createdAt,
@@ -71,7 +77,7 @@ export async function getFees(
       .leftJoin(feePayments, eq(feePayments.feeId, fees.id))
       .where(whereClause)
       .groupBy(fees.id)
-      .orderBy(desc(fees.year), fees.feeType)
+      .orderBy(desc(fees.year), fees.semester, fees.feeType)
       .limit(perPage)
       .offset(offset)
 
@@ -82,6 +88,7 @@ export async function getFees(
       id: row.id,
       feeType: row.feeType as FeeRow['feeType'],
       year: row.year,
+      semester: row.semester,
       amount: row.amount,
       paymentCount: row.paymentCount ?? 0,
       createdAt: row.createdAt,
@@ -114,7 +121,7 @@ export async function getFeeYears(): Promise<ActionResult<number[]>> {
 
 /**
  * Membuat tarif biaya baru.
- * Validasi: tidak ada duplikat kombinasi feeType + year.
+ * Validasi: tidak ada duplikat kombinasi feeType + year + semester.
  * Hanya superadmin yang dapat mengakses.
  */
 export async function createFee(input: CreateFeeInput): Promise<ActionResult<{ id: string }>> {
@@ -126,7 +133,7 @@ export async function createFee(input: CreateFeeInput): Promise<ActionResult<{ i
     return { success: false, error: firstError?.message ?? 'Data tidak valid.' }
   }
 
-  const { feeType, year, amount } = parsed.data
+  const { feeType, year, semester, amount } = parsed.data
 
   // Validasi Decimal.js
   let decimalAmount: string
@@ -141,23 +148,24 @@ export async function createFee(input: CreateFeeInput): Promise<ActionResult<{ i
   }
 
   try {
-    // Validasi: tidak ada duplikat tipe + tahun
+    // Validasi: tidak ada duplikat tipe + tahun + semester
     const existing = await db
       .select({ id: fees.id })
       .from(fees)
-      .where(and(eq(fees.feeType, feeType), eq(fees.year, year)))
+      .where(and(eq(fees.feeType, feeType), eq(fees.year, year), eq(fees.semester, semester)))
       .limit(1)
 
     if (existing.length > 0) {
+      const semesterLabel = semester === 1 ? 'Ganjil' : 'Genap'
       return {
         success: false,
-        error: `Tarif ${feeType.toUpperCase()} untuk tahun ${year} sudah ada. Tidak boleh duplikat.`,
+        error: `Tarif ${feeType.toUpperCase()} Semester ${semesterLabel} tahun ${year} sudah ada.`,
       }
     }
 
     const [newFee] = await db
       .insert(fees)
-      .values({ feeType, year, amount: decimalAmount })
+      .values({ feeType, year, semester, amount: decimalAmount })
       .returning({ id: fees.id })
 
     if (!newFee) {
@@ -174,7 +182,7 @@ export async function createFee(input: CreateFeeInput): Promise<ActionResult<{ i
 /**
  * Memperbarui tarif biaya.
  * Validasi: tidak ada pembayaran yang mengacu ke fee ini jika jumlah diubah.
- * Validasi: tidak ada duplikat tipe + tahun (kecuali record ini sendiri).
+ * Validasi: tidak ada duplikat tipe + tahun + semester (kecuali record ini sendiri).
  * Hanya superadmin yang dapat mengakses.
  */
 export async function updateFee(
@@ -193,7 +201,7 @@ export async function updateFee(
     return { success: false, error: firstError?.message ?? 'Data tidak valid.' }
   }
 
-  const { feeType, year, amount } = parsed.data
+  const { feeType, year, semester, amount } = parsed.data
 
   // Validasi Decimal.js
   let decimalAmount: string
@@ -210,7 +218,7 @@ export async function updateFee(
   try {
     // Pastikan fee ada
     const existing = await db
-      .select({ id: fees.id, amount: fees.amount, feeType: fees.feeType, year: fees.year })
+      .select({ id: fees.id, amount: fees.amount, feeType: fees.feeType, year: fees.year, semester: fees.semester })
       .from(fees)
       .where(eq(fees.id, id))
       .limit(1)
@@ -237,25 +245,26 @@ export async function updateFee(
       }
     }
 
-    // Validasi: tidak ada duplikat tipe + tahun kecuali record sendiri
-    if (feeType !== currentFee.feeType || year !== currentFee.year) {
+    // Validasi: tidak ada duplikat tipe + tahun + semester kecuali record sendiri
+    if (feeType !== currentFee.feeType || year !== currentFee.year || semester !== currentFee.semester) {
       const duplicate = await db
         .select({ id: fees.id })
         .from(fees)
-        .where(and(eq(fees.feeType, feeType), eq(fees.year, year)))
+        .where(and(eq(fees.feeType, feeType), eq(fees.year, year), eq(fees.semester, semester)))
         .limit(1)
 
       if (duplicate.length > 0) {
+        const semesterLabel = semester === 1 ? 'Ganjil' : 'Genap'
         return {
           success: false,
-          error: `Tarif ${feeType.toUpperCase()} untuk tahun ${year} sudah ada. Tidak boleh duplikat.`,
+          error: `Tarif ${feeType.toUpperCase()} Semester ${semesterLabel} tahun ${year} sudah ada.`,
         }
       }
     }
 
     await db
       .update(fees)
-      .set({ feeType, year, amount: decimalAmount, updatedAt: new Date() })
+      .set({ feeType, year, semester, amount: decimalAmount, updatedAt: new Date() })
       .where(eq(fees.id, id))
 
     revalidateFeePaths()
@@ -271,7 +280,7 @@ export async function updateFee(
  */
 export async function getFeesForPayment(
   subAppKey?: string,
-): Promise<ActionResult<{ id: string; feeType: string; year: number; amount: string }[]>> {
+): Promise<ActionResult<{ id: string; feeType: string; year: number; semester: number; amount: string }[]>> {
   if (subAppKey) {
     await requireSubappAccess(subAppKey)
   } else {
@@ -284,10 +293,11 @@ export async function getFeesForPayment(
         id: fees.id,
         feeType: fees.feeType,
         year: fees.year,
+        semester: fees.semester,
         amount: fees.amount,
       })
       .from(fees)
-      .orderBy(fees.year, fees.feeType)
+      .orderBy(fees.year, fees.semester, fees.feeType)
 
     return { success: true, data: rows }
   } catch {

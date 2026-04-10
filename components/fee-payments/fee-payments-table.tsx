@@ -145,7 +145,7 @@ export function FeePaymentsTable({
                     <TableCell>
                       <div>
                         <p className="text-sm font-medium">
-                          {feeTypeLabels[payment.feeType] ?? payment.feeType} {payment.feeYear}
+                          {feeTypeLabels[payment.feeType] ?? payment.feeType} {payment.feeYear} Sem {payment.feeSemester === 1 ? 'Ganjil' : 'Genap'}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           Tarif: {formatRupiah(payment.feeAmount)}

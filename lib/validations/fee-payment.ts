@@ -50,6 +50,7 @@ export type FeePaymentRow = {
   feeId: string
   feeType: string
   feeYear: number
+  feeSemester: number
   feeAmount: string
   amountPaid: string
   paymentMethod: PaymentMethod
