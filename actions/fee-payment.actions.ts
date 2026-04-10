@@ -5,7 +5,8 @@ import { revalidatePath } from 'next/cache'
 import Decimal from 'decimal.js'
 import { requireRole, requireSubappAccess } from '@/lib/auth-helpers'
 import { db } from '@/lib/db'
-import { feePayments, fees, students } from '@/lib/db/schema'
+import { feePayments, fees, institutes, staffs, students } from '@/lib/db/schema'
+import { sendPaymentConfirmedEmail } from '@/lib/email'
 import {
   createFeePaymentSchema,
   getFeePaymentsSchema,
@@ -377,9 +378,87 @@ export async function confirmPayment(
       .where(eq(feePayments.id, id))
 
     revalidateFeePaymentPaths(subAppKey)
+
+    // Kirim notifikasi email ke admin sekolah terkait — graceful
+    void sendPaymentConfirmedNotification({
+      feePaymentId: id,
+      studentId: existing[0].studentId,
+      scopedInstituteId,
+    })
+
     return { success: true, data: { id, status: 'paid' } }
   } catch {
     return { success: false, error: 'Gagal mengonfirmasi pembayaran. Silakan coba lagi.' }
+  }
+}
+
+/**
+ * Mengirim notifikasi konfirmasi pembayaran ke admin sekolah.
+ * Dipanggil secara async — kegagalan tidak memblokir operasi utama.
+ */
+async function sendPaymentConfirmedNotification(params: {
+  feePaymentId: string
+  studentId: string
+  scopedInstituteId: string | undefined
+}): Promise<void> {
+  try {
+    // Ambil detail pembayaran, siswa, dan fee
+    const paymentDetail = await db
+      .select({
+        amountPaid: feePayments.amountPaid,
+        paymentMethod: feePayments.paymentMethod,
+        studentName: students.name,
+        studentNumber: students.studentNumber,
+        studentInstituteId: students.instituteId,
+        feeType: fees.feeType,
+        feeYear: fees.year,
+      })
+      .from(feePayments)
+      .innerJoin(students, eq(feePayments.studentId, students.id))
+      .innerJoin(fees, eq(feePayments.feeId, fees.id))
+      .where(eq(feePayments.id, params.feePaymentId))
+      .limit(1)
+
+    if (!paymentDetail[0]) {
+      console.error('[fee-payment] Detail pembayaran tidak ditemukan untuk notifikasi email:', params.feePaymentId)
+      return
+    }
+
+    const detail = paymentDetail[0]
+    const instituteId = params.scopedInstituteId ?? detail.studentInstituteId
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+
+    // Cari semua staf aktif dari institusi sekolah yang punya email
+    const schoolStaffs = await db
+      .select({ email: staffs.email, name: staffs.name })
+      .from(staffs)
+      .innerJoin(institutes, eq(staffs.instituteId, institutes.id))
+      .where(
+        and(
+          eq(staffs.instituteId, instituteId),
+          eq(staffs.status, 'active'),
+          eq(institutes.type, 'school'),
+        ),
+      )
+
+    // Kirim email ke semua staf sekolah secara paralel
+    await Promise.allSettled(
+      schoolStaffs.map((staff) =>
+        sendPaymentConfirmedEmail(staff.email, {
+          adminName: staff.name,
+          studentName: detail.studentName,
+          studentNumber: detail.studentNumber,
+          feeType: detail.feeType,
+          feeYear: detail.feeYear,
+          amountPaid: detail.amountPaid,
+          paymentMethod: detail.paymentMethod,
+          confirmedAt: new Date(),
+          appUrl,
+        }),
+      ),
+    )
+  } catch (err) {
+    console.error('[fee-payment] Gagal mengirim notifikasi email konfirmasi pembayaran:', err)
   }
 }
 
