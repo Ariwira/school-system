@@ -17,6 +17,7 @@ import { FilterSelect } from '@/components/data-table/filter-select'
 import { FeePaymentsTable } from './fee-payments-table'
 import { FeePaymentForm } from './fee-payment-form'
 import { getFeePayments, getFeeYears } from '@/actions/fee-payment.actions'
+import { FeePaymentsExportButtons } from './fee-payments-export-buttons'
 import type { FeePaymentRow, PaymentStatus, PaymentMethod } from '@/lib/validations/fee-payment'
 
 interface FeePaymentsListClientProps {
@@ -147,10 +148,21 @@ export function FeePaymentsListClient({ subAppKey }: FeePaymentsListClientProps)
           )}
         </div>
 
-        <Button onClick={() => setSheetOpen(true)}>
-          <PlusIcon className="size-4 mr-2" />
-          Catat Pembayaran
-        </Button>
+        <div className="flex items-center gap-2">
+          {subAppKey && (
+            <FeePaymentsExportButtons
+              subAppKey={subAppKey}
+              search={search || undefined}
+              status={statusFilter}
+              paymentMethod={methodFilter}
+              feeYear={feeYearFilter !== 'all' ? Number(feeYearFilter) : undefined}
+            />
+          )}
+          <Button onClick={() => setSheetOpen(true)}>
+            <PlusIcon className="size-4 mr-2" />
+            Catat Pembayaran
+          </Button>
+        </div>
       </div>
 
       {/* Tabel */}
