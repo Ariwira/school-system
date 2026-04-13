@@ -3,9 +3,17 @@
 import { useState, useTransition, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { PencilIcon, PowerOffIcon } from 'lucide-react'
+import { PencilIcon, PowerOffIcon, MoreHorizontalIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import {
   Table,
   TableBody,
@@ -115,26 +123,34 @@ export function InstitutesTable({
                     {formatDate(institute.createdAt)}
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          router.push(`/superadmin/institutes/${institute.id}`)
-                        }
+                    <DropdownMenu>
+                      <DropdownMenuTrigger
+                        render={<Button variant="outline" size="icon-sm" />}
+                        disabled={isPending}
                       >
-                        <PencilIcon className="size-3.5 mr-1" />
-                        Edit
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setDeactivateTarget(institute)}
-                      >
-                        <PowerOffIcon className="size-3.5 mr-1" />
-                        Nonaktifkan
-                      </Button>
-                    </div>
+                        <MoreHorizontalIcon className="size-4" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-44">
+                        <DropdownMenuGroup>
+                          <DropdownMenuItem
+                            onClick={() => router.push(`/superadmin/institutes/${institute.id}`)}
+                          >
+                            <PencilIcon className="size-4" />
+                            Edit
+                          </DropdownMenuItem>
+                        </DropdownMenuGroup>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuGroup>
+                          <DropdownMenuItem
+                            variant="destructive"
+                            onClick={() => setDeactivateTarget(institute)}
+                          >
+                            <PowerOffIcon className="size-4" />
+                            Nonaktifkan
+                          </DropdownMenuItem>
+                        </DropdownMenuGroup>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))

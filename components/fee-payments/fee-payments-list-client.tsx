@@ -183,7 +183,7 @@ export function FeePaymentsListClient({ subAppKey }: FeePaymentsListClientProps)
 
       {/* Sheet form tambah pembayaran */}
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+        <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
           <SheetHeader>
             <SheetTitle>Catat Pembayaran SPP</SheetTitle>
             <SheetDescription>

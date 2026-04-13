@@ -1,11 +1,25 @@
 'use client'
 
 import { useState, useTransition, useCallback } from 'react'
-import { CheckCircleIcon, XCircleIcon, ExternalLinkIcon, EyeIcon } from 'lucide-react'
+import {
+  CheckCircleIcon,
+  XCircleIcon,
+  ExternalLinkIcon,
+  EyeIcon,
+  MoreHorizontalIcon,
+} from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import {
   Table,
   TableBody,
@@ -117,48 +131,48 @@ export function TransfersTable({
                       {formatDateWITA(transfer.issuedAt)}
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-1.5 flex-wrap">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          render={<Link href={`${basePath}/${transfer.id}`} />}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger
+                          render={<Button variant="outline" size="icon-sm" />}
+                          disabled={isPending}
                         >
-                          <EyeIcon className="size-3.5 mr-1" />
-                          Detail
-                        </Button>
-                        {transfer.receiptFile && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            render={<a href={transfer.receiptFile} target="_blank" rel="noopener noreferrer" />}
-                          >
-                            <ExternalLinkIcon className="size-3.5 mr-1" />
-                            Bukti
-                          </Button>
-                        )}
-                        {canApproveCancel && transfer.status === 'pending' && (
-                          <>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setApproveTarget(transfer)}
-                              disabled={isPending}
-                            >
-                              <CheckCircleIcon className="size-3.5 mr-1" />
-                              Setujui
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setCancelTarget(transfer)}
-                              disabled={isPending}
-                            >
-                              <XCircleIcon className="size-3.5 mr-1" />
-                              Batalkan
-                            </Button>
-                          </>
-                        )}
-                      </div>
+                          <MoreHorizontalIcon className="size-4" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-44">
+                          <DropdownMenuGroup>
+                            <DropdownMenuItem render={<Link href={`${basePath}/${transfer.id}`} />}>
+                              <EyeIcon className="size-4" />
+                              Lihat Detail
+                            </DropdownMenuItem>
+                            {transfer.receiptFile && (
+                              <DropdownMenuItem
+                                render={<a href={transfer.receiptFile} target="_blank" rel="noopener noreferrer" />}
+                              >
+                                <ExternalLinkIcon className="size-4" />
+                                Lihat Bukti
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuGroup>
+                          {canApproveCancel && transfer.status === 'pending' && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuGroup>
+                                <DropdownMenuItem onClick={() => setApproveTarget(transfer)}>
+                                  <CheckCircleIcon className="size-4" />
+                                  Setujui
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  variant="destructive"
+                                  onClick={() => setCancelTarget(transfer)}
+                                >
+                                  <XCircleIcon className="size-4" />
+                                  Batalkan
+                                </DropdownMenuItem>
+                              </DropdownMenuGroup>
+                            </>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 )

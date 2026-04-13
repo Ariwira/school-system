@@ -1,10 +1,18 @@
 'use client'
 
 import { useState, useTransition, useCallback } from 'react'
-import { CheckCircleIcon, ExternalLinkIcon } from 'lucide-react'
+import { CheckCircleIcon, ExternalLinkIcon, MoreHorizontalIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import {
   Table,
   TableBody,
@@ -168,29 +176,52 @@ export function FeePaymentsTable({
                       {formatDateWITA(payment.paidDatetime)}
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-1.5 flex-wrap">
-                        {payment.receiptFile && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            render={<a href={payment.receiptFile} target="_blank" rel="noopener noreferrer" />}
-                          >
-                            <ExternalLinkIcon className="size-3.5 mr-1" />
-                            Bukti
-                          </Button>
-                        )}
-                        {payment.status === 'pending' && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setConfirmTarget(payment)}
-                            disabled={isPending}
-                          >
-                            <CheckCircleIcon className="size-3.5 mr-1" />
-                            Konfirmasi
-                          </Button>
-                        )}
-                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger
+                          render={<Button variant="outline" size="icon-sm" />}
+                          disabled={isPending}
+                        >
+                          <MoreHorizontalIcon className="size-4" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-44">
+                          {payment.receiptFile ? (
+                            <>
+                              <DropdownMenuGroup>
+                                <DropdownMenuItem
+                                  render={<a href={payment.receiptFile} target="_blank" rel="noopener noreferrer" />}
+                                >
+                                  <ExternalLinkIcon className="size-4" />
+                                  Lihat Bukti
+                                </DropdownMenuItem>
+                              </DropdownMenuGroup>
+                              {payment.status === 'pending' && (
+                                <>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuGroup>
+                                    <DropdownMenuItem onClick={() => setConfirmTarget(payment)}>
+                                      <CheckCircleIcon className="size-4" />
+                                      Konfirmasi
+                                    </DropdownMenuItem>
+                                  </DropdownMenuGroup>
+                                </>
+                              )}
+                            </>
+                          ) : (
+                            <DropdownMenuGroup>
+                              {payment.status === 'pending' ? (
+                                <DropdownMenuItem onClick={() => setConfirmTarget(payment)}>
+                                  <CheckCircleIcon className="size-4" />
+                                  Konfirmasi
+                                </DropdownMenuItem>
+                              ) : (
+                                <DropdownMenuItem disabled>
+                                  <span className="text-muted-foreground text-sm">Tidak ada aksi</span>
+                                </DropdownMenuItem>
+                              )}
+                            </DropdownMenuGroup>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 )

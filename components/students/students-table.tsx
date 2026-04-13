@@ -9,9 +9,18 @@ import {
   XCircleIcon,
   BanIcon,
   EyeIcon,
+  MoreHorizontalIcon,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import {
   Table,
   TableBody,
@@ -118,79 +127,6 @@ export function StudentsTable({
     return `/superadmin/students/${student.id}`
   }
 
-  function getActionButtons(student: StudentRow) {
-    const buttons: React.ReactNode[] = []
-
-    buttons.push(
-      <Button
-        key="detail"
-        variant="outline"
-        size="sm"
-        render={<Link href={getDetailHref(student)} />}
-      >
-        <EyeIcon className="size-3.5 mr-1" />
-        Detail
-      </Button>,
-    )
-
-    buttons.push(
-      <Button
-        key="edit"
-        variant="outline"
-        size="sm"
-        onClick={() => onEdit(student)}
-        disabled={isPending}
-      >
-        <PencilIcon className="size-3.5 mr-1" />
-        Edit
-      </Button>,
-    )
-
-    if (student.status === 'pending') {
-      buttons.push(
-        <Button
-          key="activate"
-          variant="outline"
-          size="sm"
-          onClick={() => setConfirmAction({ type: 'activate', student })}
-          disabled={isPending}
-        >
-          <CheckCircleIcon className="size-3.5 mr-1" />
-          Aktifkan
-        </Button>,
-      )
-      buttons.push(
-        <Button
-          key="cancel"
-          variant="outline"
-          size="sm"
-          onClick={() => setConfirmAction({ type: 'cancel', student })}
-          disabled={isPending}
-        >
-          <BanIcon className="size-3.5 mr-1" />
-          Batalkan
-        </Button>,
-      )
-    }
-
-    if (student.status === 'active') {
-      buttons.push(
-        <Button
-          key="deactivate"
-          variant="outline"
-          size="sm"
-          onClick={() => setConfirmAction({ type: 'deactivate', student })}
-          disabled={isPending}
-        >
-          <XCircleIcon className="size-3.5 mr-1" />
-          Nonaktifkan
-        </Button>,
-      )
-    }
-
-    return buttons
-  }
-
   function getConfirmDialogContent() {
     if (!confirmAction) return null
     const { type, student } = confirmAction
@@ -284,9 +220,59 @@ export function StudentsTable({
                       <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-1.5 flex-wrap">
-                        {getActionButtons(student)}
-                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger
+                          render={<Button variant="outline" size="icon-sm" />}
+                          disabled={isPending}
+                        >
+                          <MoreHorizontalIcon className="size-4" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-44">
+                          <DropdownMenuGroup>
+                            <DropdownMenuItem render={<Link href={getDetailHref(student)} />}>
+                              <EyeIcon className="size-4" />
+                              Detail Siswa
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => onEdit(student)}>
+                              <PencilIcon className="size-4" />
+                              Edit Data
+                            </DropdownMenuItem>
+                          </DropdownMenuGroup>
+                          {(student.status === 'pending' || student.status === 'active') && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuGroup>
+                                {student.status === 'pending' && (
+                                  <DropdownMenuItem
+                                    onClick={() => setConfirmAction({ type: 'activate', student })}
+                                  >
+                                    <CheckCircleIcon className="size-4" />
+                                    Aktifkan
+                                  </DropdownMenuItem>
+                                )}
+                                {student.status === 'active' && (
+                                  <DropdownMenuItem
+                                    variant="destructive"
+                                    onClick={() => setConfirmAction({ type: 'deactivate', student })}
+                                  >
+                                    <XCircleIcon className="size-4" />
+                                    Nonaktifkan
+                                  </DropdownMenuItem>
+                                )}
+                                {student.status === 'pending' && (
+                                  <DropdownMenuItem
+                                    variant="destructive"
+                                    onClick={() => setConfirmAction({ type: 'cancel', student })}
+                                  >
+                                    <BanIcon className="size-4" />
+                                    Batalkan
+                                  </DropdownMenuItem>
+                                )}
+                              </DropdownMenuGroup>
+                            </>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 )

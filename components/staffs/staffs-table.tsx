@@ -6,11 +6,20 @@ import {
   UserCheckIcon,
   UserXIcon,
   PencilIcon,
-  ToggleLeftIcon,
-  ToggleRightIcon,
+  PowerOffIcon,
+  PowerIcon,
+  MoreHorizontalIcon,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import {
   Table,
   TableBody,
@@ -165,60 +174,57 @@ export function StaffsTable({
                       )}
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-1.5">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => onEdit(staff)}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger
+                          render={<Button variant="outline" size="icon-sm" />}
                           disabled={isPending}
                         >
-                          <PencilIcon className="size-3.5 mr-1" />
-                          Edit
-                        </Button>
-
-                        {staff.userId ? (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setUnlinkTarget(staff)}
-                            disabled={isPending}
-                          >
-                            <UserXIcon className="size-3.5 mr-1" />
-                            Lepas Akun
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => onLinkUser(staff)}
-                            disabled={isPending}
-                          >
-                            <UserCheckIcon className="size-3.5 mr-1" />
-                            Link Akun
-                          </Button>
-                        )}
-
-                        {staff.status !== 'resigned' && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setToggleTarget(staff)}
-                            disabled={isPending}
-                          >
-                            {staff.status === 'active' ? (
-                              <>
-                                <ToggleRightIcon className="size-3.5 mr-1" />
-                                Nonaktifkan
-                              </>
+                          <MoreHorizontalIcon className="size-4" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-44">
+                          <DropdownMenuGroup>
+                            <DropdownMenuItem onClick={() => onEdit(staff)}>
+                              <PencilIcon className="size-4" />
+                              Edit
+                            </DropdownMenuItem>
+                            {staff.userId ? (
+                              <DropdownMenuItem
+                                variant="destructive"
+                                onClick={() => setUnlinkTarget(staff)}
+                              >
+                                <UserXIcon className="size-4" />
+                                Lepas Akun
+                              </DropdownMenuItem>
                             ) : (
-                              <>
-                                <ToggleLeftIcon className="size-3.5 mr-1" />
-                                Aktifkan
-                              </>
+                              <DropdownMenuItem onClick={() => onLinkUser(staff)}>
+                                <UserCheckIcon className="size-4" />
+                                Link Akun
+                              </DropdownMenuItem>
                             )}
-                          </Button>
-                        )}
-                      </div>
+                          </DropdownMenuGroup>
+                          {staff.status !== 'resigned' && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuGroup>
+                                {staff.status === 'active' ? (
+                                  <DropdownMenuItem
+                                    variant="destructive"
+                                    onClick={() => setToggleTarget(staff)}
+                                  >
+                                    <PowerOffIcon className="size-4" />
+                                    Nonaktifkan
+                                  </DropdownMenuItem>
+                                ) : (
+                                  <DropdownMenuItem onClick={() => setToggleTarget(staff)}>
+                                    <PowerIcon className="size-4" />
+                                    Aktifkan
+                                  </DropdownMenuItem>
+                                )}
+                              </DropdownMenuGroup>
+                            </>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 )
