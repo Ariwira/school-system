@@ -1,6 +1,6 @@
 import { pgEnum } from 'drizzle-orm/pg-core'
 
-export const userRoleEnum = pgEnum('user_role', ['superadmin', 'foundation', 'school'])
+export const userRoleEnum = pgEnum('user_role', ['superadmin', 'user'])
 
 export const instituteTypeEnum = pgEnum('institute_type', [
   'foundation',

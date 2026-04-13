@@ -49,6 +49,10 @@ function getInitials(name: string): string {
 
 const ROLE_LABELS: Record<UserRole, string> = {
   superadmin: 'Superadmin',
+  user: 'Pengguna',
+}
+
+const SUBAPP_TYPE_LABELS: Record<string, string> = {
   foundation: 'Yayasan',
   school: 'Sekolah',
 }
@@ -129,7 +133,7 @@ export function Header({
                 </span>
                 <span className="text-xs text-muted-foreground">{userEmail}</span>
                 <span className="text-xs text-muted-foreground">
-                  {ROLE_LABELS[userRole]}
+                  {userRole === 'user' && subappType ? (SUBAPP_TYPE_LABELS[subappType] ?? ROLE_LABELS[userRole]) : ROLE_LABELS[userRole]}
                 </span>
               </div>
             </DropdownMenuLabel>

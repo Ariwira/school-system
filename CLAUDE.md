@@ -17,19 +17,23 @@ Issue development ada di **GitHub: https://github.com/Ariwira/school-system/issu
 
 ### Autentikasi & RBAC
 - **Tidak menggunakan organization plugin** dari Better Auth
-- RBAC cukup pakai `role` di tabel `users` + `instituteId` di tabel `staffs`
-- Roles: `superadmin` | `foundation` | `school`
+- RBAC menggunakan `role` di tabel `users` + tabel `user_subapps` (SubApp sebagai proxy RBAC)
+- Roles di `users.role`: `superadmin` | `user`
+  - `superadmin` → akses penuh ke seluruh platform
+  - `user` → akses ditentukan dari `user_subapps`, role efektif dari `subapp.type` (`foundation` atau `school`)
 - RBAC ditegakkan di **3 lapisan**: middleware → layout → Server Action
 - **Jangan pernah trust data dari client** — selalu re-validasi di Server Action
 
 ### Data Isolation (WAJIB di setiap Server Action)
 ```ts
 // Superadmin → bisa lihat semua
-// Foundation/School → hanya data institusinya sendiri
-const session = await requireRole(['superadmin', 'foundation', 'school'])
-if (session.user.role !== 'superadmin') {
-  const instituteId = await getUserInstituteId(session.user.id)
-  // filter query berdasarkan instituteId
+// User biasa → akses via subapp, role efektif dari subapp.type
+const { subapp } = await requireSubappAccess(subAppKey)
+const scopedInstituteId = subapp.instituteId
+
+// Setelah fetch record:
+if (existing.instituteId !== scopedInstituteId) {
+  return { success: false, error: 'Akses ditolak.' }
 }
 ```
 
