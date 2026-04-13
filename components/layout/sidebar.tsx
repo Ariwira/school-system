@@ -12,8 +12,7 @@ import {
   SchoolIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-
-type UserRole = 'superadmin' | 'user'
+import type { UserRole } from '@/lib/auth-helpers'
 
 interface NavItem {
   label: string
@@ -22,8 +21,8 @@ interface NavItem {
 }
 
 // Nav items untuk superadmin.
-// User (foundation/school) mendapatkan nav dari sub-app specific layout.
-const NAV_ITEMS: Record<UserRole, NavItem[]> = {
+// Foundation/school mendapatkan nav dari sub-app specific layout.
+const NAV_ITEMS: Partial<Record<UserRole, NavItem[]>> = {
   superadmin: [
     {
       label: 'Institusi',
@@ -56,7 +55,8 @@ const NAV_ITEMS: Record<UserRole, NavItem[]> = {
       icon: <ArrowLeftRightIcon className="size-4" />,
     },
   ],
-  user: [],
+  foundation: [],
+  school: [],
 }
 
 function getSchoolNavItems(subAppKey: string): NavItem[] {
@@ -108,7 +108,7 @@ interface SidebarNavProps {
 
 export function SidebarNav({ role, onNavigate, subAppKey, subappType }: SidebarNavProps) {
   const pathname = usePathname()
-  const items = subAppKey && role === 'user'
+  const items = subAppKey && (role === 'foundation' || role === 'school')
     ? subappType === 'foundation'
       ? getFoundationNavItems(subAppKey)
       : getSchoolNavItems(subAppKey)

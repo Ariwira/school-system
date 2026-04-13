@@ -33,7 +33,7 @@ export const USER_SESSION = {
     id: 'regular-user-id',
     name: 'Regular User',
     email: 'user@example.com',
-    role: 'user',
+    role: 'school',
     emailVerified: true,
     createdAt: new Date(),
     updatedAt: new Date(),

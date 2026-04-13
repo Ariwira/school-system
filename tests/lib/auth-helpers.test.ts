@@ -46,7 +46,7 @@ describe('lib/auth-helpers', () => {
     user: { id: 'sa-1', role: 'superadmin', name: 'Super Admin' },
   }
   const USER_SESSION = {
-    user: { id: 'u-1', role: 'user', name: 'Regular User' },
+    user: { id: 'u-1', role: 'school', name: 'Regular User' },
   }
   const SUBAPP = { id: 'sub-1', key: 'school-1', name: 'Sekolah 1' }
 

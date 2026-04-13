@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
-
-type UserRole = 'superadmin' | 'user'
+import type { UserRole } from '@/lib/auth-helpers'
 
 const PUBLIC_ROUTES = [
   '/login',
