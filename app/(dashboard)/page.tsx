@@ -38,7 +38,7 @@ export default async function DashboardPortalPage() {
   }
 
   const { user } = session
-  const userRole = (user as { role?: UserRole }).role ?? 'school'
+  const userRole = (user as { role?: UserRole }).role ?? 'user'
 
   let subappList: Subapp[] = []
 

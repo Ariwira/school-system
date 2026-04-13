@@ -60,7 +60,7 @@ export const USER_SESSION = {
     id: REGULAR_USER_ID,
     name: 'Regular User',
     email: 'user@example.com',
-    role: 'school',
+    role: 'user',
     emailVerified: true,
     createdAt: new Date(),
     updatedAt: new Date(),

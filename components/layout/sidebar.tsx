@@ -55,8 +55,7 @@ const NAV_ITEMS: Partial<Record<UserRole, NavItem[]>> = {
       icon: <ArrowLeftRightIcon className="size-4" />,
     },
   ],
-  foundation: [],
-  school: [],
+  user: [],
 }
 
 function getSchoolNavItems(subAppKey: string): NavItem[] {
@@ -108,7 +107,7 @@ interface SidebarNavProps {
 
 export function SidebarNav({ role, onNavigate, subAppKey, subappType }: SidebarNavProps) {
   const pathname = usePathname()
-  const items = subAppKey && (role === 'foundation' || role === 'school')
+  const items = subAppKey && role === 'user'
     ? subappType === 'foundation'
       ? getFoundationNavItems(subAppKey)
       : getSchoolNavItems(subAppKey)

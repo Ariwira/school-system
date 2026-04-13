@@ -26,7 +26,7 @@ export default async function FoundationSubappLayout(
   }
 
   const { user } = session
-  const userRole = (user as { role?: UserRole }).role ?? 'school'
+  const userRole = (user as { role?: UserRole }).role ?? 'user'
 
   let subapps: Subapp[] = []
   try {
