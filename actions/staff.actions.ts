@@ -444,8 +444,11 @@ export async function toggleStaffStatus(
   id: string,
   subAppKey?: string,
 ): Promise<ActionResult<{ id: string; status: string }>> {
+  let scopedInstituteId: string | undefined
+
   if (subAppKey) {
-    await requireSubappAccess(subAppKey)
+    const { subapp } = await requireSubappAccess(subAppKey)
+    scopedInstituteId = subapp.instituteId ?? undefined
   } else {
     await requireRole(['superadmin'])
   }
@@ -463,6 +466,11 @@ export async function toggleStaffStatus(
 
     if (!existing[0]) {
       return { success: false, error: 'Staf tidak ditemukan.' }
+    }
+
+    // Verifikasi kepemilikan data untuk non-superadmin
+    if (scopedInstituteId && existing[0].instituteId !== scopedInstituteId) {
+      return { success: false, error: 'Akses ditolak.' }
     }
 
     const currentStatus = existing[0].status
@@ -490,8 +498,11 @@ export async function linkUserAccount(
   userId: string,
   subAppKey?: string,
 ): Promise<ActionResult<{ staffId: string }>> {
+  let scopedInstituteId: string | undefined
+
   if (subAppKey) {
-    await requireSubappAccess(subAppKey)
+    const { subapp } = await requireSubappAccess(subAppKey)
+    scopedInstituteId = subapp.instituteId ?? undefined
   } else {
     await requireRole(['superadmin'])
   }
@@ -510,6 +521,11 @@ export async function linkUserAccount(
 
     if (!staff[0]) {
       return { success: false, error: 'Staf tidak ditemukan.' }
+    }
+
+    // Verifikasi kepemilikan data untuk non-superadmin
+    if (scopedInstituteId && staff[0].instituteId !== scopedInstituteId) {
+      return { success: false, error: 'Akses ditolak.' }
     }
 
     if (staff[0].userId !== null) {
@@ -566,8 +582,11 @@ export async function unlinkUserAccount(
   staffId: string,
   subAppKey?: string,
 ): Promise<ActionResult<{ staffId: string }>> {
+  let scopedInstituteId: string | undefined
+
   if (subAppKey) {
-    await requireSubappAccess(subAppKey)
+    const { subapp } = await requireSubappAccess(subAppKey)
+    scopedInstituteId = subapp.instituteId ?? undefined
   } else {
     await requireRole(['superadmin'])
   }
@@ -585,6 +604,11 @@ export async function unlinkUserAccount(
 
     if (!staff[0]) {
       return { success: false, error: 'Staf tidak ditemukan.' }
+    }
+
+    // Verifikasi kepemilikan data untuk non-superadmin
+    if (scopedInstituteId && staff[0].instituteId !== scopedInstituteId) {
+      return { success: false, error: 'Akses ditolak.' }
     }
 
     if (staff[0].userId === null) {
@@ -611,10 +635,19 @@ export async function getAvailableUsers(
   instituteId: string,
   subAppKey?: string,
 ): Promise<ActionResult<{ id: string; name: string; email: string }[]>> {
+  let scopedInstituteId: string | undefined
+
   if (subAppKey) {
-    await requireSubappAccess(subAppKey)
+    const { subapp } = await requireSubappAccess(subAppKey)
+    scopedInstituteId = subapp.instituteId ?? undefined
   } else {
     await requireRole(['superadmin'])
+    scopedInstituteId = instituteId
+  }
+
+  // Jika instituteId dari parameter berbeda dengan scopedInstituteId, tolak
+  if (scopedInstituteId && instituteId !== scopedInstituteId) {
+    return { success: false, error: 'Akses ditolak.' }
   }
 
   if (!instituteId) {
@@ -632,10 +665,11 @@ export async function getAvailableUsers(
       .map((r) => r.userId)
       .filter((id): id is string => id !== null)
 
-    // Ambil semua users yang belum terpakai di institusi ini
+    // Ambil semua users yang belum terpakai di institusi ini, kecualikan superadmin
     const allUsers = await db
       .select({ id: users.id, name: users.name, email: users.email })
       .from(users)
+      .where(ne(users.role, 'superadmin'))
       .orderBy(users.name)
 
     const available = allUsers.filter((u) => !usedIds.includes(u.id))

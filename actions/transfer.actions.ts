@@ -503,11 +503,14 @@ export async function approveTransfer(
   input: ApproveTransferInput,
   subAppKey?: string,
 ): Promise<ActionResult<{ id: string }>> {
+  let scopedInstituteId: string | undefined
+
   if (subAppKey) {
     const { subapp } = await requireSubappAccess(subAppKey)
     if (subapp.type === 'school') {
       return { success: false, error: 'School admin tidak bisa melakukan aksi ini.' }
     }
+    scopedInstituteId = subapp.instituteId ?? undefined
   } else {
     await requireRole(['superadmin'])
   }
@@ -526,13 +529,29 @@ export async function approveTransfer(
 
   try {
     const existing = await db
-      .select({ id: transfers.id, status: transfers.status, transferMethod: transfers.transferMethod })
+      .select({
+        id: transfers.id,
+        status: transfers.status,
+        transferFromId: transfers.transferFromId,
+        transferToId: transfers.transferToId,
+      })
       .from(transfers)
       .where(eq(transfers.id, id))
       .limit(1)
 
     if (!existing[0]) {
       return { success: false, error: 'Data transfer tidak ditemukan.' }
+    }
+
+    // Verifikasi keterlibatan institusi untuk non-superadmin
+    if (scopedInstituteId) {
+      const isInvolved =
+        existing[0].transferFromId === scopedInstituteId ||
+        existing[0].transferToId === scopedInstituteId
+
+      if (!isInvolved) {
+        return { success: false, error: 'Akses ditolak.' }
+      }
     }
 
     if (existing[0].status !== 'pending') {
@@ -581,11 +600,14 @@ export async function cancelTransfer(
   id: string,
   subAppKey?: string,
 ): Promise<ActionResult<{ id: string }>> {
+  let scopedInstituteId: string | undefined
+
   if (subAppKey) {
     const { subapp } = await requireSubappAccess(subAppKey)
     if (subapp.type === 'school') {
       return { success: false, error: 'School admin tidak bisa melakukan aksi ini.' }
     }
+    scopedInstituteId = subapp.instituteId ?? undefined
   } else {
     await requireRole(['superadmin'])
   }
@@ -596,13 +618,29 @@ export async function cancelTransfer(
 
   try {
     const existing = await db
-      .select({ id: transfers.id, status: transfers.status })
+      .select({
+        id: transfers.id,
+        status: transfers.status,
+        transferFromId: transfers.transferFromId,
+        transferToId: transfers.transferToId,
+      })
       .from(transfers)
       .where(eq(transfers.id, id))
       .limit(1)
 
     if (!existing[0]) {
       return { success: false, error: 'Data transfer tidak ditemukan.' }
+    }
+
+    // Verifikasi keterlibatan institusi untuk non-superadmin
+    if (scopedInstituteId) {
+      const isInvolved =
+        existing[0].transferFromId === scopedInstituteId ||
+        existing[0].transferToId === scopedInstituteId
+
+      if (!isInvolved) {
+        return { success: false, error: 'Akses ditolak.' }
+      }
     }
 
     if (existing[0].status !== 'pending') {
@@ -632,8 +670,11 @@ export async function confirmReceived(
   receiverId: string,
   subAppKey?: string,
 ): Promise<ActionResult<{ id: string }>> {
+  let scopedInstituteId: string | undefined
+
   if (subAppKey) {
-    await requireSubappAccess(subAppKey)
+    const { subapp } = await requireSubappAccess(subAppKey)
+    scopedInstituteId = subapp.instituteId ?? undefined
   } else {
     await requireRole(['superadmin'])
   }
@@ -655,6 +696,11 @@ export async function confirmReceived(
 
     if (!existing[0]) {
       return { success: false, error: 'Data transfer tidak ditemukan.' }
+    }
+
+    // Verifikasi bahwa subapp saat ini adalah TUJUAN transfer
+    if (scopedInstituteId && existing[0].transferToId !== scopedInstituteId) {
+      return { success: false, error: 'Akses ditolak. Hanya institusi tujuan yang dapat mengonfirmasi.' }
     }
 
     if (existing[0].status !== 'approved') {
@@ -727,10 +773,19 @@ export async function getStaffsForTransfer(
   instituteId: string,
   subAppKey?: string,
 ): Promise<ActionResult<{ id: string; name: string; staffNumber: string }[]>> {
+  let scopedInstituteId: string | undefined
+
   if (subAppKey) {
-    await requireSubappAccess(subAppKey)
+    const { subapp } = await requireSubappAccess(subAppKey)
+    scopedInstituteId = subapp.instituteId ?? undefined
   } else {
     await requireRole(['superadmin'])
+    scopedInstituteId = instituteId
+  }
+
+  // Validasi isolasi: user subapp hanya bisa ambil staf institusinya sendiri
+  if (scopedInstituteId && instituteId !== scopedInstituteId) {
+    return { success: false, error: 'Akses ditolak.' }
   }
 
   if (!instituteId) {
