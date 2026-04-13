@@ -1,7 +1,17 @@
 'use client'
 
-import { PencilIcon } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { PencilIcon, MoreHorizontal } from 'lucide-react'
+import { Button, buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import {
   Table,
   TableBody,
@@ -79,20 +89,33 @@ export function FeesTable({
                 <TableCell>{formatRupiah(fee.amount)}</TableCell>
                 <TableCell className="text-center">{fee.paymentCount}</TableCell>
                 <TableCell className="text-right">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onEdit(fee)}
-                    title={
-                      fee.paymentCount > 0
-                        ? 'Tidak dapat diedit — sudah ada pembayaran'
-                        : 'Edit tarif'
-                    }
-                    disabled={fee.paymentCount > 0}
-                  >
-                    <PencilIcon className="size-4" />
-                    <span className="sr-only">Edit</span>
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      className={cn(buttonVariants({ variant: 'ghost', size: 'icon' }))}
+                      disabled={fee.paymentCount > 0}
+                    >
+                      <MoreHorizontal className="size-4" />
+                      <span className="sr-only">Buka menu</span>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuGroup>
+                        <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">
+                          Aksi Tarif
+                        </DropdownMenuLabel>
+                      </DropdownMenuGroup>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuGroup>
+                        <DropdownMenuItem
+                          onClick={() => onEdit(fee)}
+                          className="cursor-pointer"
+                          disabled={fee.paymentCount > 0}
+                        >
+                          <PencilIcon className="size-4 mr-2" />
+                          Edit Tarif
+                        </DropdownMenuItem>
+                      </DropdownMenuGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             ))}

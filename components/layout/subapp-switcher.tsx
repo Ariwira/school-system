@@ -1,12 +1,12 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { ChevronDownIcon, BuildingIcon, SchoolIcon } from 'lucide-react'
+import { ChevronDownIcon, BuildingIcon, SchoolIcon, ShieldIcon } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -36,9 +36,8 @@ const TYPE_LABELS: Record<string, string> = {
 }
 
 function SubappIcon({ type }: { type: string }) {
-  if (type === 'foundation') {
-    return <BuildingIcon className="size-4 shrink-0 text-muted-foreground" />
-  }
+  if (type === 'superadmin') return <ShieldIcon className="size-4 shrink-0 text-muted-foreground" />
+  if (type === 'foundation') return <BuildingIcon className="size-4 shrink-0 text-muted-foreground" />
   return <SchoolIcon className="size-4 shrink-0 text-muted-foreground" />
 }
 
@@ -59,21 +58,18 @@ export function SubAppSwitcher({
 }: SubAppSwitcherProps) {
   const router = useRouter()
 
-  // Superadmin — tampilkan label sebagai link ke panel superadmin
-  if (userRole === 'superadmin') {
-    return (
-      <Link
-        href="/superadmin/institutes"
-        className="flex items-center gap-2 rounded-md border bg-muted/50 px-3 py-1.5 hover:bg-muted transition-colors cursor-pointer"
-      >
-        <BuildingIcon className="size-4 text-muted-foreground" />
-        <span className="text-sm font-medium">Super Admin</span>
-      </Link>
-    )
+  function handleNavigate(key: string, type: string) {
+    if (type === 'superadmin') {
+      router.push('/superadmin/institutes')
+    } else if (type === 'foundation') {
+      router.push(`/foundation/${key}`)
+    } else {
+      router.push(`/school/${key}`)
+    }
   }
 
-  // Tidak punya subapp sama sekali
-  if (subapps.length === 0) {
+  // Tidak punya subapp dan bukan superadmin
+  if (userRole !== 'superadmin' && subapps.length === 0) {
     return (
       <div className="flex items-center gap-2 rounded-md border bg-muted/50 px-3 py-1.5">
         <span className="text-sm text-muted-foreground">Belum ada akses</span>
@@ -81,114 +77,121 @@ export function SubAppSwitcher({
     )
   }
 
-  const current = currentKey
-    ? subapps.find((s) => s.key === currentKey)
-    : subapps[0]
+  // Tentukan item yang sedang aktif
+  const currentSubapp = currentKey ? subapps.find((s) => s.key === currentKey) : null
+  const isOnSuperadminPanel = !currentKey && userRole === 'superadmin'
 
-  const displaySubapp = current ?? subapps[0]
+  // Label yang ditampilkan di trigger button
+  const triggerLabel = isOnSuperadminPanel
+    ? 'Super Admin'
+    : (currentSubapp?.name ?? currentSubapp?.key ?? (userRole === 'superadmin' ? 'Super Admin' : subapps[0]?.name ?? 'SubApp'))
 
-  function handleNavigate(subapp: SubappItem) {
-    const path =
-      subapp.type === 'foundation'
-        ? `/foundation/${subapp.key}`
-        : `/school/${subapp.key}`
-    router.push(path)
-  }
+  const triggerType = isOnSuperadminPanel
+    ? 'superadmin'
+    : (currentSubapp?.type ?? (userRole === 'superadmin' ? 'superadmin' : subapps[0]?.type ?? ''))
 
-  // Hanya 1 subapp — tampil label saja tanpa dropdown
-  if (subapps.length === 1) {
+  const triggerImage = isOnSuperadminPanel ? null : (currentSubapp?.image ?? subapps[0]?.image ?? null)
+
+  // Hanya 1 subapp dan bukan superadmin — tampil label saja tanpa dropdown
+  if (userRole !== 'superadmin' && subapps.length === 1) {
     return (
       <div className="flex items-center gap-2 rounded-md border bg-muted/50 px-3 py-1.5">
         <Avatar size="sm">
-          {displaySubapp.image && (
-            <AvatarImage
-              src={displaySubapp.image}
-              alt={displaySubapp.name ?? ''}
-            />
-          )}
-          <AvatarFallback className="text-xs">
-            {getSubappInitials(displaySubapp.name)}
-          </AvatarFallback>
+          {triggerImage && <AvatarImage src={triggerImage} alt={triggerLabel} />}
+          <AvatarFallback className="text-xs">{getSubappInitials(triggerLabel)}</AvatarFallback>
         </Avatar>
-        <div className="flex flex-col leading-none">
-          <span className="text-sm font-medium">
-            {displaySubapp.name ?? displaySubapp.key}
-          </span>
-        </div>
+        <span className="text-sm font-medium">{triggerLabel}</span>
         <Badge variant="secondary" className="text-xs">
-          {TYPE_LABELS[displaySubapp.type] ?? displaySubapp.type}
+          {TYPE_LABELS[triggerType] ?? triggerType}
         </Badge>
       </div>
     )
   }
 
-  // Lebih dari 1 subapp — tampilkan dropdown switcher
+  // Superadmin atau lebih dari 1 subapp — tampilkan dropdown
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        aria-label="Pilih SubApp"
+        aria-label="Pilih panel"
         className="flex h-auto items-center gap-2 rounded-md border bg-background px-3 py-1.5 text-sm font-medium shadow-xs hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
       >
-        <Avatar size="sm">
-          {displaySubapp.image && (
-            <AvatarImage
-              src={displaySubapp.image}
-              alt={displaySubapp.name ?? ''}
-            />
-          )}
-          <AvatarFallback className="text-xs">
-            {getSubappInitials(displaySubapp.name)}
-          </AvatarFallback>
-        </Avatar>
-        <div className="flex flex-col items-start leading-none">
-          <span className="text-sm font-medium">
-            {displaySubapp.name ?? displaySubapp.key}
-          </span>
-        </div>
+        {triggerType === 'superadmin' ? (
+          <ShieldIcon className="size-4 text-muted-foreground" />
+        ) : (
+          <Avatar size="sm">
+            {triggerImage && <AvatarImage src={triggerImage} alt={triggerLabel} />}
+            <AvatarFallback className="text-xs">{getSubappInitials(triggerLabel)}</AvatarFallback>
+          </Avatar>
+        )}
+        <span className="text-sm font-medium">{triggerLabel}</span>
         <Badge variant="secondary" className="text-xs">
-          {TYPE_LABELS[displaySubapp.type] ?? displaySubapp.type}
+          {TYPE_LABELS[triggerType] ?? triggerType}
         </Badge>
         <ChevronDownIcon className="size-4 text-muted-foreground" />
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end" sideOffset={8} className="w-64">
-        <DropdownMenuLabel className="text-xs text-muted-foreground">
-          Pilih Sub-Aplikasi
-        </DropdownMenuLabel>
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="text-xs text-muted-foreground">
+            Pindah Panel
+          </DropdownMenuLabel>
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        {subapps.map((subapp) => {
-          const isActive = displaySubapp.id === subapp.id
-          return (
+
+        {/* Panel Superadmin — hanya tampil jika user adalah superadmin */}
+        {userRole === 'superadmin' && (
+          <DropdownMenuGroup>
             <DropdownMenuItem
-              key={subapp.id}
-              onClick={() => handleNavigate(subapp)}
+              onClick={() => handleNavigate('superadmin', 'superadmin')}
               className="flex items-center gap-3 cursor-pointer"
             >
-              <Avatar size="sm">
-                {subapp.image && (
-                  <AvatarImage src={subapp.image} alt={subapp.name ?? ''} />
-                )}
-                <AvatarFallback className="text-xs">
-                  {getSubappInitials(subapp.name)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex flex-1 flex-col gap-0.5">
-                <span className="text-sm font-medium">
-                  {subapp.name ?? subapp.key}
-                </span>
-                <div className="flex items-center gap-1.5">
-                  <SubappIcon type={subapp.type} />
-                  <span className="text-xs text-muted-foreground">
-                    {TYPE_LABELS[subapp.type] ?? subapp.type}
-                  </span>
-                </div>
+              <div className="flex size-7 items-center justify-center rounded-full bg-muted">
+                <ShieldIcon className="size-4 text-muted-foreground" />
               </div>
-              {isActive && (
+              <div className="flex flex-1 flex-col gap-0.5">
+                <span className="text-sm font-medium">Super Admin</span>
+                <span className="text-xs text-muted-foreground">Panel administrasi</span>
+              </div>
+              {isOnSuperadminPanel && (
                 <span className="size-2 rounded-full bg-primary shrink-0" />
               )}
             </DropdownMenuItem>
-          )
-        })}
+          </DropdownMenuGroup>
+        )}
+
+        {subapps.length > 0 && userRole === 'superadmin' && (
+          <DropdownMenuSeparator />
+        )}
+
+        <DropdownMenuGroup>
+          {subapps.map((subapp) => {
+            const isActive = currentSubapp?.id === subapp.id
+            return (
+              <DropdownMenuItem
+                key={subapp.id}
+                onClick={() => handleNavigate(subapp.key, subapp.type)}
+                className="flex items-center gap-3 cursor-pointer"
+              >
+                <Avatar size="sm">
+                  {subapp.image && <AvatarImage src={subapp.image} alt={subapp.name ?? ''} />}
+                  <AvatarFallback className="text-xs">{getSubappInitials(subapp.name)}</AvatarFallback>
+                </Avatar>
+                <div className="flex flex-1 flex-col gap-0.5">
+                  <span className="text-sm font-medium">{subapp.name ?? subapp.key}</span>
+                  <div className="flex items-center gap-1.5">
+                    <SubappIcon type={subapp.type} />
+                    <span className="text-xs text-muted-foreground">
+                      {TYPE_LABELS[subapp.type] ?? subapp.type}
+                    </span>
+                  </div>
+                </div>
+                {isActive && (
+                  <span className="size-2 rounded-full bg-primary shrink-0" />
+                )}
+              </DropdownMenuItem>
+            )
+          })}
+        </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   )

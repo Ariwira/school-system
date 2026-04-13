@@ -3,9 +3,19 @@
 import { useState, useTransition, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { PencilIcon, PowerOffIcon } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { PencilIcon, PowerOffIcon, MoreHorizontal } from 'lucide-react'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import {
   Table,
   TableBody,
@@ -115,26 +125,41 @@ export function InstitutesTable({
                     {formatDate(institute.createdAt)}
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          router.push(`/superadmin/institutes/${institute.id}`)
-                        }
+                    <DropdownMenu>
+                      <DropdownMenuTrigger
+                        className={cn(buttonVariants({ variant: 'ghost', size: 'icon' }))}
+                        disabled={isPending}
                       >
-                        <PencilIcon className="size-3.5 mr-1" />
-                        Edit
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setDeactivateTarget(institute)}
-                      >
-                        <PowerOffIcon className="size-3.5 mr-1" />
-                        Nonaktifkan
-                      </Button>
-                    </div>
+                        <MoreHorizontal className="size-4" />
+                        <span className="sr-only">Buka menu</span>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-52">
+                        <DropdownMenuGroup>
+                          <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">
+                            Aksi Institusi
+                          </DropdownMenuLabel>
+                        </DropdownMenuGroup>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuGroup>
+                          <DropdownMenuItem
+                            onClick={() =>
+                              router.push(`/superadmin/institutes/${institute.id}`)
+                            }
+                            className="cursor-pointer"
+                          >
+                            <PencilIcon className="size-4 mr-2" />
+                            Edit Institusi
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => setDeactivateTarget(institute)}
+                            className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
+                          >
+                            <PowerOffIcon className="size-4 mr-2" />
+                            Nonaktifkan Institusi
+                          </DropdownMenuItem>
+                        </DropdownMenuGroup>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import {
@@ -9,9 +10,20 @@ import {
   XCircleIcon,
   BanIcon,
   EyeIcon,
+  MoreHorizontal,
 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import {
   Table,
   TableBody,
@@ -75,6 +87,7 @@ export function StudentsTable({
   subAppKey,
   showInstitute = false,
 }: StudentsTableProps) {
+  const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null)
 
@@ -118,77 +131,68 @@ export function StudentsTable({
     return `/superadmin/students/${student.id}`
   }
 
-  function getActionButtons(student: StudentRow) {
-    const buttons: React.ReactNode[] = []
+  function getActionMenu(student: StudentRow) {
+    const items: React.ReactNode[] = []
 
-    buttons.push(
-      <Button
+    items.push(
+      <DropdownMenuItem
         key="detail"
-        variant="outline"
-        size="sm"
-        render={<Link href={getDetailHref(student)} />}
+        onClick={() => router.push(getDetailHref(student))}
+        className="cursor-pointer"
       >
-        <EyeIcon className="size-3.5 mr-1" />
-        Detail
-      </Button>,
+        <EyeIcon className="size-4 mr-2" />
+        Detail Siswa
+      </DropdownMenuItem>,
     )
 
-    buttons.push(
-      <Button
+    items.push(
+      <DropdownMenuItem
         key="edit"
-        variant="outline"
-        size="sm"
         onClick={() => onEdit(student)}
-        disabled={isPending}
+        className="cursor-pointer"
       >
-        <PencilIcon className="size-3.5 mr-1" />
-        Edit
-      </Button>,
+        <PencilIcon className="size-4 mr-2" />
+        Edit Data
+      </DropdownMenuItem>,
     )
 
     if (student.status === 'pending') {
-      buttons.push(
-        <Button
+      items.push(
+        <DropdownMenuItem
           key="activate"
-          variant="outline"
-          size="sm"
           onClick={() => setConfirmAction({ type: 'activate', student })}
-          disabled={isPending}
+          className="cursor-pointer"
         >
-          <CheckCircleIcon className="size-3.5 mr-1" />
-          Aktifkan
-        </Button>,
+          <CheckCircleIcon className="size-4 mr-2" />
+          Aktifkan Siswa
+        </DropdownMenuItem>,
       )
-      buttons.push(
-        <Button
+      items.push(
+        <DropdownMenuItem
           key="cancel"
-          variant="outline"
-          size="sm"
           onClick={() => setConfirmAction({ type: 'cancel', student })}
-          disabled={isPending}
+          className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
         >
-          <BanIcon className="size-3.5 mr-1" />
-          Batalkan
-        </Button>,
+          <BanIcon className="size-4 mr-2" />
+          Batalkan Pendaftaran
+        </DropdownMenuItem>,
       )
     }
 
     if (student.status === 'active') {
-      buttons.push(
-        <Button
+      items.push(
+        <DropdownMenuItem
           key="deactivate"
-          variant="outline"
-          size="sm"
           onClick={() => setConfirmAction({ type: 'deactivate', student })}
-          disabled={isPending}
+          className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
         >
-          <XCircleIcon className="size-3.5 mr-1" />
-          Nonaktifkan
-        </Button>,
+          <XCircleIcon className="size-4 mr-2" />
+          Nonaktifkan Siswa
+        </DropdownMenuItem>,
       )
     }
 
-    return buttons
+    return items
   }
 
   function getConfirmDialogContent() {
@@ -284,9 +288,24 @@ export function StudentsTable({
                       <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-1.5 flex-wrap">
-                        {getActionButtons(student)}
-                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger
+                          className={cn(buttonVariants({ variant: 'ghost', size: 'icon' }))}
+                          disabled={isPending}
+                        >
+                          <MoreHorizontal className="size-4" />
+                          <span className="sr-only">Buka menu</span>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-52">
+                          <DropdownMenuGroup>
+                            <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">
+                              Aksi Siswa
+                            </DropdownMenuLabel>
+                          </DropdownMenuGroup>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuGroup>{getActionMenu(student)}</DropdownMenuGroup>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 )

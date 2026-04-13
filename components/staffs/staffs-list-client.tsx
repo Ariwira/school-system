@@ -178,7 +178,7 @@ export function StaffsListClient({
 
       {/* Sheet form untuk tambah/edit staf */}
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+        <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
           <SheetHeader>
             <SheetTitle>
               {editTarget ? 'Edit Staf' : 'Tambah Staf Baru'}

@@ -154,7 +154,7 @@ export function FeesListClient() {
 
       {/* Sheet form tambah/edit */}
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+        <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
           <SheetHeader>
             <SheetTitle>
               {editTarget ? 'Edit Tarif Biaya' : 'Tambah Tarif Biaya'}

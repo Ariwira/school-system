@@ -8,9 +8,20 @@ import {
   PencilIcon,
   ToggleLeftIcon,
   ToggleRightIcon,
+  MoreHorizontal,
 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Button, buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import {
   Table,
   TableBody,
@@ -165,60 +176,73 @@ export function StaffsTable({
                       )}
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-1.5">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => onEdit(staff)}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger
+                          className={cn(buttonVariants({ variant: 'ghost', size: 'icon' }))}
                           disabled={isPending}
                         >
-                          <PencilIcon className="size-3.5 mr-1" />
-                          Edit
-                        </Button>
+                          <MoreHorizontal className="size-4" />
+                          <span className="sr-only">Buka menu</span>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                          <DropdownMenuGroup>
+                            <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">
+                              Aksi Staf
+                            </DropdownMenuLabel>
+                          </DropdownMenuGroup>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuGroup>
+                            <DropdownMenuItem
+                              onClick={() => onEdit(staff)}
+                              className="cursor-pointer"
+                            >
+                              <PencilIcon className="size-4 mr-2" />
+                              Edit Data
+                            </DropdownMenuItem>
 
-                        {staff.userId ? (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setUnlinkTarget(staff)}
-                            disabled={isPending}
-                          >
-                            <UserXIcon className="size-3.5 mr-1" />
-                            Lepas Akun
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => onLinkUser(staff)}
-                            disabled={isPending}
-                          >
-                            <UserCheckIcon className="size-3.5 mr-1" />
-                            Link Akun
-                          </Button>
-                        )}
-
-                        {staff.status !== 'resigned' && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setToggleTarget(staff)}
-                            disabled={isPending}
-                          >
-                            {staff.status === 'active' ? (
-                              <>
-                                <ToggleRightIcon className="size-3.5 mr-1" />
-                                Nonaktifkan
-                              </>
+                            {staff.userId ? (
+                              <DropdownMenuItem
+                                onClick={() => setUnlinkTarget(staff)}
+                                className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
+                              >
+                                <UserXIcon className="size-4 mr-2" />
+                                Lepas Akun
+                              </DropdownMenuItem>
                             ) : (
-                              <>
-                                <ToggleLeftIcon className="size-3.5 mr-1" />
-                                Aktifkan
-                              </>
+                              <DropdownMenuItem
+                                onClick={() => onLinkUser(staff)}
+                                className="cursor-pointer"
+                              >
+                                <UserCheckIcon className="size-4 mr-2" />
+                                Hubungkan Akun
+                              </DropdownMenuItem>
                             )}
-                          </Button>
-                        )}
-                      </div>
+
+                            {staff.status !== 'resigned' && (
+                              <DropdownMenuItem
+                                onClick={() => setToggleTarget(staff)}
+                                className={
+                                  staff.status === 'active'
+                                    ? 'cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50'
+                                    : 'cursor-pointer'
+                                }
+                              >
+                                {staff.status === 'active' ? (
+                                  <>
+                                    <ToggleRightIcon className="size-4 mr-2" />
+                                    Nonaktifkan Staf
+                                  </>
+                                ) : (
+                                  <>
+                                    <ToggleLeftIcon className="size-4 mr-2" />
+                                    Aktifkan Staf
+                                  </>
+                                )}
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuGroup>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 )

@@ -1,11 +1,22 @@
 'use client'
 
 import { useState, useTransition, useCallback } from 'react'
-import { CheckCircleIcon, XCircleIcon, ExternalLinkIcon, EyeIcon } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { CheckCircleIcon, XCircleIcon, ExternalLinkIcon, EyeIcon, MoreHorizontal } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import {
   Table,
   TableBody,
@@ -50,6 +61,7 @@ export function TransfersTable({
   subappType,
   basePath,
 }: TransfersTableProps) {
+  const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [cancelTarget, setCancelTarget] = useState<TransferRow | null>(null)
   const [approveTarget, setApproveTarget] = useState<TransferRow | null>(null)
@@ -117,48 +129,61 @@ export function TransfersTable({
                       {formatDateWITA(transfer.issuedAt)}
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-1.5 flex-wrap">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          render={<Link href={`${basePath}/${transfer.id}`} />}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger
+                          className={cn(buttonVariants({ variant: 'ghost', size: 'icon' }))}
+                          disabled={isPending}
                         >
-                          <EyeIcon className="size-3.5 mr-1" />
-                          Detail
-                        </Button>
-                        {transfer.receiptFile && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            render={<a href={transfer.receiptFile} target="_blank" rel="noopener noreferrer" />}
-                          >
-                            <ExternalLinkIcon className="size-3.5 mr-1" />
-                            Bukti
-                          </Button>
-                        )}
-                        {canApproveCancel && transfer.status === 'pending' && (
-                          <>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setApproveTarget(transfer)}
-                              disabled={isPending}
+                          <MoreHorizontal className="size-4" />
+                          <span className="sr-only">Buka menu</span>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-52">
+                          <DropdownMenuGroup>
+                            <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">
+                              Aksi Transfer
+                            </DropdownMenuLabel>
+                          </DropdownMenuGroup>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuGroup>
+                            <DropdownMenuItem
+                              onClick={() => router.push(`${basePath}/${transfer.id}`)}
+                              className="cursor-pointer"
                             >
-                              <CheckCircleIcon className="size-3.5 mr-1" />
-                              Setujui
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setCancelTarget(transfer)}
-                              disabled={isPending}
-                            >
-                              <XCircleIcon className="size-3.5 mr-1" />
-                              Batalkan
-                            </Button>
-                          </>
-                        )}
-                      </div>
+                              <EyeIcon className="size-4 mr-2" />
+                              Detail Transfer
+                            </DropdownMenuItem>
+
+                            {transfer.receiptFile && (
+                              <DropdownMenuItem
+                                onClick={() => window.open(transfer.receiptFile!, '_blank')}
+                                className="cursor-pointer"
+                              >
+                                <ExternalLinkIcon className="size-4 mr-2" />
+                                Lihat Bukti
+                              </DropdownMenuItem>
+                            )}
+
+                            {canApproveCancel && transfer.status === 'pending' && (
+                              <>
+                                <DropdownMenuItem
+                                  onClick={() => setApproveTarget(transfer)}
+                                  className="cursor-pointer"
+                                >
+                                  <CheckCircleIcon className="size-4 mr-2" />
+                                  Setujui Transfer
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => setCancelTarget(transfer)}
+                                  className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
+                                >
+                                  <XCircleIcon className="size-4 mr-2" />
+                                  Batalkan Transfer
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                          </DropdownMenuGroup>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 )

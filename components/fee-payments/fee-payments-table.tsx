@@ -1,10 +1,21 @@
 'use client'
 
 import { useState, useTransition, useCallback } from 'react'
-import { CheckCircleIcon, ExternalLinkIcon } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { CheckCircleIcon, ExternalLinkIcon, MoreHorizontal } from 'lucide-react'
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import {
   Table,
   TableBody,
@@ -168,29 +179,43 @@ export function FeePaymentsTable({
                       {formatDateWITA(payment.paidDatetime)}
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-1.5 flex-wrap">
-                        {payment.receiptFile && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            render={<a href={payment.receiptFile} target="_blank" rel="noopener noreferrer" />}
-                          >
-                            <ExternalLinkIcon className="size-3.5 mr-1" />
-                            Bukti
-                          </Button>
-                        )}
-                        {payment.status === 'pending' && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setConfirmTarget(payment)}
-                            disabled={isPending}
-                          >
-                            <CheckCircleIcon className="size-3.5 mr-1" />
-                            Konfirmasi
-                          </Button>
-                        )}
-                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger
+                          className={cn(buttonVariants({ variant: 'ghost', size: 'icon' }))}
+                          disabled={isPending}
+                        >
+                          <MoreHorizontal className="size-4" />
+                          <span className="sr-only">Buka menu</span>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-52">
+                          <DropdownMenuGroup>
+                            <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">
+                              Aksi Pembayaran
+                            </DropdownMenuLabel>
+                          </DropdownMenuGroup>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuGroup>
+                            {payment.receiptFile && (
+                              <DropdownMenuItem
+                                onClick={() => window.open(payment.receiptFile!, '_blank')}
+                                className="cursor-pointer"
+                              >
+                                <ExternalLinkIcon className="size-4 mr-2" />
+                                Lihat Bukti
+                              </DropdownMenuItem>
+                            )}
+                            {payment.status === 'pending' && (
+                              <DropdownMenuItem
+                                onClick={() => setConfirmTarget(payment)}
+                                className="cursor-pointer"
+                              >
+                                <CheckCircleIcon className="size-4 mr-2" />
+                                Konfirmasi Pembayaran
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuGroup>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 )
