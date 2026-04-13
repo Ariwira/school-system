@@ -3,8 +3,7 @@ import { requireSubappAccess, getUserSubapps } from '@/lib/auth-helpers'
 import { Header } from '@/components/layout/header'
 import { SidebarDesktop } from '@/components/layout/sidebar'
 import type { Subapp } from '@/lib/db/schema'
-
-type UserRole = 'superadmin' | 'user'
+import type { UserRole } from '@/lib/auth-helpers'
 
 export default async function FoundationSubappLayout(
   props: LayoutProps<'/foundation/[subAppKey]'>
@@ -27,7 +26,7 @@ export default async function FoundationSubappLayout(
   }
 
   const { user } = session
-  const userRole = ((user as { role?: string }).role ?? 'user') as UserRole
+  const userRole = (user as { role?: UserRole }).role ?? 'school'
 
   let subapps: Subapp[] = []
   try {

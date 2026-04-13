@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import type { UserRole } from '@/lib/auth-helpers'
 
 export type SubappItem = {
   id: string
@@ -24,7 +25,7 @@ export type SubappItem = {
 }
 
 interface SubAppSwitcherProps {
-  userRole: 'superadmin' | 'user'
+  userRole: UserRole
   subapps: SubappItem[]
   currentKey?: string | null
 }

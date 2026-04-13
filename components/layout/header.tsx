@@ -24,9 +24,8 @@ import {
 import { DashboardBreadcrumb } from '@/components/layout/breadcrumb'
 import { SidebarContent } from '@/components/layout/sidebar'
 import { SubAppSwitcher, type SubappItem } from '@/components/layout/subapp-switcher'
+import type { UserRole } from '@/lib/auth-helpers'
 import { useState } from 'react'
-
-type UserRole = 'superadmin' | 'user'
 
 interface HeaderProps {
   userName: string
@@ -50,7 +49,8 @@ function getInitials(name: string): string {
 
 const ROLE_LABELS: Record<UserRole, string> = {
   superadmin: 'Superadmin',
-  user: 'Pengguna',
+  foundation: 'Yayasan',
+  school: 'Sekolah',
 }
 
 export function Header({

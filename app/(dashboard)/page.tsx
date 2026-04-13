@@ -2,12 +2,11 @@ import { redirect } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { requireAuth, getUserSubapps } from '@/lib/auth-helpers'
+import type { UserRole } from '@/lib/auth-helpers'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import type { Subapp } from '@/lib/db/schema'
-
-type UserRole = 'superadmin' | 'user'
 
 const TYPE_LABEL: Record<string, string> = {
   foundation: 'Yayasan',
@@ -39,7 +38,7 @@ export default async function DashboardPortalPage() {
   }
 
   const { user } = session
-  const userRole = ((user as { role?: string }).role ?? 'user') as UserRole
+  const userRole = (user as { role?: UserRole }).role ?? 'school'
 
   let subappList: Subapp[] = []
 
