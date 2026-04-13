@@ -503,11 +503,14 @@ export async function activateStudent(
   id: string,
   subAppKey?: string,
 ): Promise<ActionResult<{ id: string; status: string }>> {
+  let scopedInstituteId: string | undefined
+
   if (subAppKey) {
     const { subapp } = await requireSubappAccess(subAppKey)
     if (subapp.type !== 'school') {
       return { success: false, error: 'Akses ditolak.' }
     }
+    scopedInstituteId = subapp.instituteId ?? undefined
   } else {
     await requireRole(['superadmin'])
   }
@@ -518,13 +521,18 @@ export async function activateStudent(
 
   try {
     const existing = await db
-      .select({ id: students.id, status: students.status })
+      .select({ id: students.id, status: students.status, instituteId: students.instituteId })
       .from(students)
       .where(eq(students.id, id))
       .limit(1)
 
     if (!existing[0]) {
       return { success: false, error: 'Siswa tidak ditemukan.' }
+    }
+
+    // Verifikasi kepemilikan data untuk non-superadmin
+    if (scopedInstituteId && existing[0].instituteId !== scopedInstituteId) {
+      return { success: false, error: 'Akses ditolak.' }
     }
 
     if (existing[0].status !== 'pending') {
@@ -553,11 +561,14 @@ export async function deactivateStudent(
   id: string,
   subAppKey?: string,
 ): Promise<ActionResult<{ id: string; status: string }>> {
+  let scopedInstituteId: string | undefined
+
   if (subAppKey) {
     const { subapp } = await requireSubappAccess(subAppKey)
     if (subapp.type !== 'school') {
       return { success: false, error: 'Akses ditolak.' }
     }
+    scopedInstituteId = subapp.instituteId ?? undefined
   } else {
     await requireRole(['superadmin'])
   }
@@ -568,13 +579,18 @@ export async function deactivateStudent(
 
   try {
     const existing = await db
-      .select({ id: students.id, status: students.status })
+      .select({ id: students.id, status: students.status, instituteId: students.instituteId })
       .from(students)
       .where(eq(students.id, id))
       .limit(1)
 
     if (!existing[0]) {
       return { success: false, error: 'Siswa tidak ditemukan.' }
+    }
+
+    // Verifikasi kepemilikan data untuk non-superadmin
+    if (scopedInstituteId && existing[0].instituteId !== scopedInstituteId) {
+      return { success: false, error: 'Akses ditolak.' }
     }
 
     if (existing[0].status !== 'active') {
@@ -603,11 +619,14 @@ export async function cancelStudent(
   id: string,
   subAppKey?: string,
 ): Promise<ActionResult<{ id: string; status: string }>> {
+  let scopedInstituteId: string | undefined
+
   if (subAppKey) {
     const { subapp } = await requireSubappAccess(subAppKey)
     if (subapp.type !== 'school') {
       return { success: false, error: 'Akses ditolak.' }
     }
+    scopedInstituteId = subapp.instituteId ?? undefined
   } else {
     await requireRole(['superadmin'])
   }
@@ -618,13 +637,18 @@ export async function cancelStudent(
 
   try {
     const existing = await db
-      .select({ id: students.id, status: students.status })
+      .select({ id: students.id, status: students.status, instituteId: students.instituteId })
       .from(students)
       .where(eq(students.id, id))
       .limit(1)
 
     if (!existing[0]) {
       return { success: false, error: 'Siswa tidak ditemukan.' }
+    }
+
+    // Verifikasi kepemilikan data untuk non-superadmin
+    if (scopedInstituteId && existing[0].instituteId !== scopedInstituteId) {
+      return { success: false, error: 'Akses ditolak.' }
     }
 
     if (existing[0].status !== 'pending') {

@@ -310,6 +310,24 @@ describe('toggleStaffStatus', () => {
     }
   })
 
+  it('[SECURITY] school: toggle status staf sekolah lain ditolak', async () => {
+    vi.mocked(requireSubappAccess).mockResolvedValue({
+      session: USER_SESSION,
+      subapp: { ...SCHOOL_SUBAPP, instituteId: INSTITUTE_ID }
+    } as any)
+
+    setupSelectSequence(mockDb, [
+      [{ id: STAFF_ID, status: 'active', instituteId: OTHER_INSTITUTE_ID }] // Staf milik sekolah lain
+    ])
+
+    const result = await toggleStaffStatus(STAFF_ID, 'subapp-A')
+
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error).toContain('Akses ditolak')
+    }
+  })
+
   it('berhasil toggle dari inactive ke active', async () => {
     setupSelectSequence(mockDb, [[{ id: STAFF_ID, status: 'inactive', instituteId: INSTITUTE_ID }]])
     mockDb.update.mockReturnValueOnce(mockUpdateChain())
