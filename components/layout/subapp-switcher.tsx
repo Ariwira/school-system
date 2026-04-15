@@ -61,14 +61,32 @@ export function SubAppSwitcher({
 
   // Superadmin — tampilkan dropdown dengan Superadmin Panel + semua institusi
   if (userRole === 'superadmin') {
+    const currentSubapp = currentKey
+      ? subapps.find((s) => s.key === currentKey)
+      : null
+
     return (
       <DropdownMenu>
         <DropdownMenuTrigger
           aria-label="Pilih Panel"
           className="flex h-auto items-center gap-2 rounded-md border bg-background px-3 py-1.5 text-sm font-medium shadow-xs hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
         >
-          <BuildingIcon className="size-4 text-muted-foreground" />
-          <span className="text-sm font-medium">Super Admin</span>
+          {currentSubapp ? (
+            <>
+              <SubappIcon type={currentSubapp.type} />
+              <span className="text-sm font-medium">
+                {currentSubapp.name ?? currentSubapp.key}
+              </span>
+              <Badge variant="secondary" className="text-xs">
+                {TYPE_LABELS[currentSubapp.type] ?? currentSubapp.type}
+              </Badge>
+            </>
+          ) : (
+            <>
+              <BuildingIcon className="size-4 text-muted-foreground" />
+              <span className="text-sm font-medium">Super Admin</span>
+            </>
+          )}
           <ChevronDownIcon className="size-4 text-muted-foreground" />
         </DropdownMenuTrigger>
 
