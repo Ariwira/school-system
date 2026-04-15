@@ -24,7 +24,7 @@ export default async function SuperadminStudentsPage() {
       </div>
 
       <Suspense fallback={<div className="rounded-md border p-8 text-center text-muted-foreground text-sm">Memuat data...</div>}>
-        <StudentsListClient isSuperadmin showInstitute />
+        <StudentsListClient showInstitute basePath="/superadmin/students" />
       </Suspense>
     </div>
   )

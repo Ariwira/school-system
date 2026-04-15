@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
@@ -47,9 +48,11 @@ interface FeeOption {
 }
 
 interface FeePaymentFormProps {
-  onSuccess: () => void
-  onCancel: () => void
+  onSuccess?: () => void
+  onCancel?: () => void
   subAppKey?: string
+  /** Jika diset, redirect ke URL ini setelah sukses (untuk halaman form tersendiri) */
+  redirectTo?: string
 }
 
 const paymentMethodLabels: Record<string, string> = {
@@ -69,7 +72,8 @@ function parseAmountToDecimal(formatted: string): string {
   return numeric || '0'
 }
 
-export function FeePaymentForm({ onSuccess, onCancel, subAppKey }: FeePaymentFormProps) {
+export function FeePaymentForm({ onSuccess, onCancel, subAppKey, redirectTo }: FeePaymentFormProps) {
+  const router = useRouter()
   const [students, setStudents] = useState<StudentOption[]>([])
   const [feeOptions, setFeeOptions] = useState<FeeOption[]>([])
   const [studentSearch, setStudentSearch] = useState('')
@@ -195,7 +199,11 @@ export function FeePaymentForm({ onSuccess, onCancel, subAppKey }: FeePaymentFor
 
     if (result.success) {
       toast.success('Pembayaran berhasil dicatat.')
-      onSuccess()
+      if (redirectTo) {
+        router.push(redirectTo)
+      } else {
+        onSuccess?.()
+      }
     } else {
       toast.error(result.error)
     }
@@ -499,7 +507,13 @@ export function FeePaymentForm({ onSuccess, onCancel, subAppKey }: FeePaymentFor
           <Button
             type="button"
             variant="outline"
-            onClick={onCancel}
+            onClick={() => {
+              if (redirectTo) {
+                router.push(redirectTo)
+              } else {
+                onCancel?.()
+              }
+            }}
             disabled={isSubmitting}
           >
             Batal

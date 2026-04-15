@@ -1,5 +1,6 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
@@ -33,8 +34,10 @@ import {
 interface FeeFormProps {
   mode: 'create' | 'edit'
   defaultValues?: FeeRow
-  onSuccess: () => void
-  onCancel: () => void
+  onSuccess?: () => void
+  onCancel?: () => void
+  /** Jika diset, redirect ke URL ini setelah sukses (untuk halaman form tersendiri) */
+  redirectTo?: string
 }
 
 const feeTypeLabels: Record<string, string> = {
@@ -60,7 +63,8 @@ function parseAmountToDecimal(formatted: string): string {
   return numeric || '0'
 }
 
-export function FeeForm({ mode, defaultValues, onSuccess, onCancel }: FeeFormProps) {
+export function FeeForm({ mode, defaultValues, onSuccess, onCancel, redirectTo }: FeeFormProps) {
+  const router = useRouter()
   const schema = mode === 'create' ? createFeeSchema : updateFeeSchema
 
   const defaultAmount = defaultValues?.amount
@@ -91,7 +95,11 @@ export function FeeForm({ mode, defaultValues, onSuccess, onCancel }: FeeFormPro
           ? 'Tarif biaya berhasil ditambahkan.'
           : 'Tarif biaya berhasil diperbarui.',
       )
-      onSuccess()
+      if (redirectTo) {
+        router.push(redirectTo)
+      } else {
+        onSuccess?.()
+      }
     } else {
       toast.error(result.error)
     }
@@ -238,7 +246,13 @@ export function FeeForm({ mode, defaultValues, onSuccess, onCancel }: FeeFormPro
           <Button
             type="button"
             variant="outline"
-            onClick={onCancel}
+            onClick={() => {
+              if (redirectTo) {
+                router.push(redirectTo)
+              } else {
+                onCancel?.()
+              }
+            }}
             disabled={isSubmitting}
           >
             Batal

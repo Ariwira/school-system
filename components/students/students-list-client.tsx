@@ -1,29 +1,21 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { PlusIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet'
 import { SearchInput } from '@/components/data-table/search-input'
 import { FilterSelect } from '@/components/data-table/filter-select'
 import { StudentsTable } from './students-table'
-import { StudentForm } from './student-form'
 import { getStudents, getGenerationYears } from '@/actions/student.actions'
 import type { StudentRow, StudentStatus } from '@/lib/validations/student'
 
 interface StudentsListClientProps {
   subAppKey?: string
-  instituteId?: string
-  isSuperadmin?: boolean
   showInstitute?: boolean
+  /** Base path untuk navigasi form tambah/edit, contoh: /school/sma-1/students */
+  basePath: string
 }
 
 const statusOptions = [
@@ -39,10 +31,10 @@ const statusOptions = [
 
 export function StudentsListClient({
   subAppKey,
-  instituteId,
-  isSuperadmin = false,
   showInstitute = false,
+  basePath,
 }: StudentsListClientProps) {
+  const router = useRouter()
   const searchParams = useSearchParams()
 
   const search = searchParams.get('search') ?? ''
@@ -54,9 +46,6 @@ export function StudentsListClient({
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
   const [availableYears, setAvailableYears] = useState<number[]>([])
-
-  const [sheetOpen, setSheetOpen] = useState(false)
-  const [editTarget, setEditTarget] = useState<StudentRow | null>(null)
 
   const perPage = 10
 
@@ -107,20 +96,11 @@ export function StudentsListClient({
   }, [fetchYears])
 
   function handleAddNew() {
-    setEditTarget(null)
-    setSheetOpen(true)
+    router.push(`${basePath}/new`)
   }
 
   function handleEdit(student: StudentRow) {
-    setEditTarget(student)
-    setSheetOpen(true)
-  }
-
-  function handleFormSuccess() {
-    setSheetOpen(false)
-    setEditTarget(null)
-    fetchData()
-    fetchYears()
+    router.push(`${basePath}/${student.id}/edit`)
   }
 
   const yearOptions = [
@@ -177,33 +157,6 @@ export function StudentsListClient({
           showInstitute={showInstitute}
         />
       )}
-
-      {/* Sheet form tambah/edit */}
-      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>
-              {editTarget ? 'Edit Siswa' : 'Tambah Siswa Baru'}
-            </SheetTitle>
-            <SheetDescription>
-              {editTarget
-                ? `Perbarui data siswa ${editTarget.name}.`
-                : 'Isi data untuk menambahkan siswa baru.'}
-            </SheetDescription>
-          </SheetHeader>
-          <div className="mt-6">
-            <StudentForm
-              mode={editTarget ? 'edit' : 'create'}
-              defaultValues={editTarget ?? undefined}
-              onSuccess={handleFormSuccess}
-              onCancel={() => setSheetOpen(false)}
-              subAppKey={subAppKey}
-              instituteId={instituteId}
-              isSuperadmin={isSuperadmin}
-            />
-          </div>
-        </SheetContent>
-      </Sheet>
     </div>
   )
 }

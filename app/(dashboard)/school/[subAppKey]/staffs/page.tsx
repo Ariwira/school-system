@@ -17,16 +17,12 @@ export async function generateMetadata({ params }: SchoolStaffsPageProps) {
 export default async function SchoolStaffsPage({ params }: SchoolStaffsPageProps) {
   const { subAppKey } = await params
 
-  let instituteId: string | undefined
-
   try {
     const { subapp } = await requireSubappAccess(subAppKey)
 
     if (subapp.type !== 'school') {
       redirect('/')
     }
-
-    instituteId = subapp.instituteId ?? undefined
   } catch {
     redirect('/login')
   }
@@ -43,7 +39,7 @@ export default async function SchoolStaffsPage({ params }: SchoolStaffsPageProps
       <Suspense fallback={<div className="rounded-md border p-8 text-center text-muted-foreground text-sm">Memuat data...</div>}>
         <StaffsListClient
           subAppKey={subAppKey}
-          instituteId={instituteId}
+          basePath={`/school/${subAppKey}/staffs`}
         />
       </Suspense>
     </div>

@@ -1,27 +1,21 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { PlusIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet'
 import { SearchInput } from '@/components/data-table/search-input'
 import { FilterSelect } from '@/components/data-table/filter-select'
 import { FeePaymentsTable } from './fee-payments-table'
-import { FeePaymentForm } from './fee-payment-form'
 import { getFeePayments, getFeeYears } from '@/actions/fee-payment.actions'
 import { FeePaymentsExportButtons } from './fee-payments-export-buttons'
 import type { FeePaymentRow, PaymentStatus, PaymentMethod } from '@/lib/validations/fee-payment'
 
 interface FeePaymentsListClientProps {
   subAppKey?: string
+  /** Base path untuk navigasi form tambah, contoh: /school/sma-1/fee-payments */
+  basePath: string
 }
 
 const statusOptions = [
@@ -41,7 +35,8 @@ const methodOptions = [
   { value: 'other', label: 'Lainnya' },
 ]
 
-export function FeePaymentsListClient({ subAppKey }: FeePaymentsListClientProps) {
+export function FeePaymentsListClient({ subAppKey, basePath }: FeePaymentsListClientProps) {
+  const router = useRouter()
   const searchParams = useSearchParams()
 
   const search = searchParams.get('search') ?? ''
@@ -54,8 +49,6 @@ export function FeePaymentsListClient({ subAppKey }: FeePaymentsListClientProps)
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
   const [availableYears, setAvailableYears] = useState<number[]>([])
-
-  const [sheetOpen, setSheetOpen] = useState(false)
 
   const perPage = 10
 
@@ -106,11 +99,6 @@ export function FeePaymentsListClient({ subAppKey }: FeePaymentsListClientProps)
     fetchYears()
   }, [fetchYears])
 
-  function handleFormSuccess() {
-    setSheetOpen(false)
-    fetchData()
-  }
-
   const yearOptions = [
     { value: 'all', label: 'Semua Tahun' },
     ...availableYears.map((y) => ({ value: String(y), label: String(y) })),
@@ -158,7 +146,7 @@ export function FeePaymentsListClient({ subAppKey }: FeePaymentsListClientProps)
               feeYear={feeYearFilter !== 'all' ? Number(feeYearFilter) : undefined}
             />
           )}
-          <Button onClick={() => setSheetOpen(true)}>
+          <Button onClick={() => router.push(`${basePath}/new`)}>
             <PlusIcon className="size-4 mr-2" />
             Catat Pembayaran
           </Button>
@@ -180,25 +168,6 @@ export function FeePaymentsListClient({ subAppKey }: FeePaymentsListClientProps)
           subAppKey={subAppKey}
         />
       )}
-
-      {/* Sheet form tambah pembayaran */}
-      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>Catat Pembayaran SPP</SheetTitle>
-            <SheetDescription>
-              Isi data pembayaran SPP siswa. Jika metode transfer, bukti pembayaran wajib diupload.
-            </SheetDescription>
-          </SheetHeader>
-          <div className="mt-6">
-            <FeePaymentForm
-              onSuccess={handleFormSuccess}
-              onCancel={() => setSheetOpen(false)}
-              subAppKey={subAppKey}
-            />
-          </div>
-        </SheetContent>
-      </Sheet>
     </div>
   )
 }
