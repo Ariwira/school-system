@@ -37,7 +37,7 @@ export default async function SchoolFeePaymentsPage({ params }: SchoolFeePayment
       </div>
 
       <Suspense fallback={<div className="rounded-md border p-8 text-center text-muted-foreground text-sm">Memuat data...</div>}>
-        <FeePaymentsListClient subAppKey={subAppKey} />
+        <FeePaymentsListClient subAppKey={subAppKey} basePath={`/school/${subAppKey}/fee-payments`} />
       </Suspense>
     </div>
   )

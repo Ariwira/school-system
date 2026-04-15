@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useForm, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
@@ -72,12 +73,14 @@ type FormValues = z.infer<typeof formSchema>
 interface StaffFormProps {
   mode: 'create' | 'edit'
   defaultValues?: StaffWithUser
-  onSuccess: () => void
-  onCancel: () => void
+  onSuccess?: () => void
+  onCancel?: () => void
   subAppKey?: string
   /** Preset instituteId for foundation/school routes */
   instituteId?: string
   isSuperadmin?: boolean
+  /** Jika diset, redirect ke URL ini setelah sukses (untuk halaman form tersendiri) */
+  redirectTo?: string
 }
 
 const departmentOptions = [
@@ -103,7 +106,9 @@ export function StaffForm({
   subAppKey,
   instituteId,
   isSuperadmin = false,
+  redirectTo,
 }: StaffFormProps) {
+  const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [institutesOptions, setInstitutesOptions] = useState<
     { id: string; name: string; type: string }[]
@@ -156,7 +161,11 @@ export function StaffForm({
         const result = await updateStaff(defaultValues.id, updatePayload.data, subAppKey)
         if (result.success) {
           toast.success('Data staf berhasil diperbarui.')
-          onSuccess()
+          if (redirectTo) {
+            router.push(redirectTo)
+          } else {
+            onSuccess?.()
+          }
         } else {
           toast.error(result.error)
         }
@@ -173,7 +182,11 @@ export function StaffForm({
         const result = await createStaff(createPayload.data, subAppKey)
         if (result.success) {
           toast.success('Staf berhasil dibuat.')
-          onSuccess()
+          if (redirectTo) {
+            router.push(redirectTo)
+          } else {
+            onSuccess?.()
+          }
         } else {
           toast.error(result.error)
         }
@@ -453,7 +466,13 @@ export function StaffForm({
           <Button
             type="button"
             variant="outline"
-            onClick={onCancel}
+            onClick={() => {
+              if (redirectTo) {
+                router.push(redirectTo)
+              } else {
+                onCancel?.()
+              }
+            }}
             disabled={isSubmitting}
           >
             Batal

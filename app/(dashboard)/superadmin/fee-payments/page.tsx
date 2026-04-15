@@ -24,7 +24,7 @@ export default async function SuperadminFeePaymentsPage() {
       </div>
 
       <Suspense fallback={<div className="rounded-md border p-8 text-center text-muted-foreground text-sm">Memuat data...</div>}>
-        <FeePaymentsListClient />
+        <FeePaymentsListClient basePath="/superadmin/fee-payments" />
       </Suspense>
     </div>
   )

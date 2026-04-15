@@ -275,6 +275,58 @@ export async function updateFee(
 }
 
 /**
+ * Mengambil detail tarif biaya berdasarkan ID.
+ * Hanya superadmin yang dapat mengakses.
+ */
+export async function getFeeById(id: string): Promise<ActionResult<FeeRow>> {
+  await requireRole(['superadmin'])
+
+  if (!id) {
+    return { success: false, error: 'ID tarif tidak valid.' }
+  }
+
+  try {
+    const rows = await db
+      .select({
+        id: fees.id,
+        feeType: fees.feeType,
+        year: fees.year,
+        semester: fees.semester,
+        amount: fees.amount,
+        paymentCount: sql<number>`cast(count(${feePayments.id}) as int)`,
+        createdAt: fees.createdAt,
+        updatedAt: fees.updatedAt,
+      })
+      .from(fees)
+      .leftJoin(feePayments, eq(feePayments.feeId, fees.id))
+      .where(eq(fees.id, id))
+      .groupBy(fees.id)
+      .limit(1)
+
+    if (!rows[0]) {
+      return { success: false, error: 'Tarif biaya tidak ditemukan.' }
+    }
+
+    const row = rows[0]
+    return {
+      success: true,
+      data: {
+        id: row.id,
+        feeType: row.feeType as FeeRow['feeType'],
+        year: row.year,
+        semester: row.semester,
+        amount: row.amount,
+        paymentCount: row.paymentCount ?? 0,
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+      },
+    }
+  } catch {
+    return { success: false, error: 'Gagal mengambil data tarif biaya.' }
+  }
+}
+
+/**
  * Mengambil daftar tarif biaya untuk dropdown form pembayaran.
  * Dapat diakses oleh superadmin dan school user (via subAppKey).
  */

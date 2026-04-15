@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useForm, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
@@ -78,11 +79,13 @@ type FormValues = z.infer<typeof formSchema>
 interface StudentFormProps {
   mode: 'create' | 'edit'
   defaultValues?: StudentRow
-  onSuccess: () => void
-  onCancel: () => void
+  onSuccess?: () => void
+  onCancel?: () => void
   subAppKey?: string
   instituteId?: string
   isSuperadmin?: boolean
+  /** Jika diset, redirect ke URL ini setelah sukses (untuk halaman form tersendiri) */
+  redirectTo?: string
 }
 
 export function StudentForm({
@@ -93,7 +96,9 @@ export function StudentForm({
   subAppKey,
   instituteId,
   isSuperadmin = false,
+  redirectTo,
 }: StudentFormProps) {
+  const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [institutesOptions, setInstitutesOptions] = useState<
     { id: string; name: string }[]
@@ -145,7 +150,11 @@ export function StudentForm({
         const result = await updateStudent(defaultValues.id, updatePayload.data, subAppKey)
         if (result.success) {
           toast.success('Data siswa berhasil diperbarui.')
-          onSuccess()
+          if (redirectTo) {
+            router.push(redirectTo)
+          } else {
+            onSuccess?.()
+          }
         } else {
           toast.error(result.error)
         }
@@ -162,7 +171,11 @@ export function StudentForm({
         const result = await createStudent(createPayload.data, subAppKey)
         if (result.success) {
           toast.success('Siswa berhasil ditambahkan.')
-          onSuccess()
+          if (redirectTo) {
+            router.push(redirectTo)
+          } else {
+            onSuccess?.()
+          }
         } else {
           toast.error(result.error)
         }
@@ -440,7 +453,13 @@ export function StudentForm({
           <Button
             type="button"
             variant="outline"
-            onClick={onCancel}
+            onClick={() => {
+              if (redirectTo) {
+                router.push(redirectTo)
+              } else {
+                onCancel?.()
+              }
+            }}
             disabled={isSubmitting}
           >
             Batal

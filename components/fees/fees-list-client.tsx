@@ -1,20 +1,12 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { PlusIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet'
 import { FilterSelect } from '@/components/data-table/filter-select'
 import { FeesTable } from './fees-table'
-import { FeeForm } from './fee-form'
 import { getFees, getFeeYears } from '@/actions/fee.actions'
 import type { FeeRow, FeeType } from '@/lib/validations/fee'
 
@@ -30,6 +22,7 @@ const feeTypeOptions = [
 ]
 
 export function FeesListClient() {
+  const router = useRouter()
   const searchParams = useSearchParams()
 
   const feeTypeFilter = searchParams.get('feeType') ?? 'all'
@@ -40,9 +33,6 @@ export function FeesListClient() {
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
   const [availableYears, setAvailableYears] = useState<number[]>([])
-
-  const [sheetOpen, setSheetOpen] = useState(false)
-  const [editTarget, setEditTarget] = useState<FeeRow | null>(null)
 
   const perPage = 10
 
@@ -89,20 +79,11 @@ export function FeesListClient() {
   }, [fetchYears])
 
   function handleAddNew() {
-    setEditTarget(null)
-    setSheetOpen(true)
+    router.push('/superadmin/fees/new')
   }
 
   function handleEdit(fee: FeeRow) {
-    setEditTarget(fee)
-    setSheetOpen(true)
-  }
-
-  function handleFormSuccess() {
-    setSheetOpen(false)
-    setEditTarget(null)
-    fetchData()
-    fetchYears()
+    router.push(`/superadmin/fees/${fee.id}/edit`)
   }
 
   const yearOptions = [
@@ -151,30 +132,6 @@ export function FeesListClient() {
           onEdit={handleEdit}
         />
       )}
-
-      {/* Sheet form tambah/edit */}
-      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent className="w-full sm:max-w-md overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>
-              {editTarget ? 'Edit Tarif Biaya' : 'Tambah Tarif Biaya'}
-            </SheetTitle>
-            <SheetDescription>
-              {editTarget
-                ? `Perbarui tarif ${editTarget.feeType.toUpperCase()} ${editTarget.year} Sem ${editTarget.semester === 1 ? 'Ganjil' : 'Genap'}.`
-                : 'Isi data untuk mendefinisikan tarif biaya baru.'}
-            </SheetDescription>
-          </SheetHeader>
-          <div className="mt-6">
-            <FeeForm
-              mode={editTarget ? 'edit' : 'create'}
-              defaultValues={editTarget ?? undefined}
-              onSuccess={handleFormSuccess}
-              onCancel={() => setSheetOpen(false)}
-            />
-          </div>
-        </SheetContent>
-      </Sheet>
     </div>
   )
 }
