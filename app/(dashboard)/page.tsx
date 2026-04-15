@@ -42,10 +42,11 @@ export default async function DashboardPortalPage() {
   const userRole = (user as { role?: UserRole }).role ?? 'user'
 
   let subappList: Subapp[] = []
+  let allSubapps: Subapp[] = []
 
   if (userRole === 'superadmin') {
     // Superadmin: tampilkan tile panel superadmin + semua institusi
-    const all = await getUserSubapps(user.id)
+    allSubapps = await getUserSubapps(user.id)
     // Tambahkan tile superadmin panel secara virtual di depan
     const superadminTile: Subapp = {
       id: 'superadmin-panel',
@@ -57,9 +58,10 @@ export default async function DashboardPortalPage() {
       createdAt: new Date(),
       updatedAt: new Date(),
     }
-    subappList = [superadminTile, ...all]
+    subappList = [superadminTile, ...allSubapps]
   } else {
-    subappList = await getUserSubapps(user.id)
+    allSubapps = await getUserSubapps(user.id)
+    subappList = allSubapps
 
     // Jika hanya 1 subapp → redirect langsung
     if (subappList.length === 1 && subappList[0]) {
@@ -74,11 +76,10 @@ export default async function DashboardPortalPage() {
         userEmail={user.email}
         userAvatar={(user as { avatar?: string | null }).avatar ?? null}
         userRole={userRole}
-        subapps={subappList.filter((s) => s.type !== 'superadmin')}
+        subapps={allSubapps}
         currentSubappKey={null}
       />
-
-      <main className="flex-1 overflow-y-auto p-4 lg:p-6">
+      <main className="flex-1 p-4 lg:p-6">
         <div className="flex flex-col gap-6">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">

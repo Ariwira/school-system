@@ -1,12 +1,12 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { ChevronDownIcon, BuildingIcon, SchoolIcon } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -59,16 +59,93 @@ export function SubAppSwitcher({
 }: SubAppSwitcherProps) {
   const router = useRouter()
 
-  // Superadmin — tampilkan label sebagai link ke panel superadmin
+  // Superadmin — tampilkan dropdown dengan Superadmin Panel + semua institusi
   if (userRole === 'superadmin') {
+    const currentSubapp = currentKey
+      ? subapps.find((s) => s.key === currentKey)
+      : null
+
     return (
-      <Link
-        href="/superadmin/institutes"
-        className="flex items-center gap-2 rounded-md border bg-muted/50 px-3 py-1.5 hover:bg-muted transition-colors cursor-pointer"
-      >
-        <BuildingIcon className="size-4 text-muted-foreground" />
-        <span className="text-sm font-medium">Super Admin</span>
-      </Link>
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          aria-label="Pilih Panel"
+          className="flex h-auto items-center gap-2 rounded-md border bg-background px-3 py-1.5 text-sm font-medium shadow-xs hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+        >
+          {currentSubapp ? (
+            <>
+              <SubappIcon type={currentSubapp.type} />
+              <span className="text-sm font-medium">
+                {currentSubapp.name ?? currentSubapp.key}
+              </span>
+              <Badge variant="secondary" className="text-xs">
+                {TYPE_LABELS[currentSubapp.type] ?? currentSubapp.type}
+              </Badge>
+            </>
+          ) : (
+            <>
+              <BuildingIcon className="size-4 text-muted-foreground" />
+              <span className="text-sm font-medium">Super Admin</span>
+            </>
+          )}
+          <ChevronDownIcon className="size-4 text-muted-foreground" />
+        </DropdownMenuTrigger>
+
+        <DropdownMenuContent align="end" sideOffset={8} className="w-64">
+          <DropdownMenuGroup>
+            <DropdownMenuLabel className="text-xs text-muted-foreground">
+              Panel
+            </DropdownMenuLabel>
+            <DropdownMenuItem
+              onClick={() => router.push('/superadmin/institutes')}
+              className="flex items-center gap-2 cursor-pointer"
+            >
+              <BuildingIcon className="size-4 shrink-0 text-muted-foreground" />
+              <span>Superadmin Panel</span>
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
+
+          {subapps.length > 0 && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuGroup>
+                <DropdownMenuLabel className="text-xs text-muted-foreground">
+                  Institusi
+                </DropdownMenuLabel>
+                {subapps.map((subapp) => (
+                  <DropdownMenuItem
+                    key={subapp.id}
+                    onClick={() => handleNavigate(subapp)}
+                    className="flex items-center gap-3 cursor-pointer"
+                  >
+                    <Avatar size="sm">
+                      {subapp.image && (
+                        <AvatarImage
+                          src={subapp.image}
+                          alt={subapp.name ?? ''}
+                        />
+                      )}
+                      <AvatarFallback className="text-xs">
+                        {getSubappInitials(subapp.name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-1 flex-col gap-0.5">
+                      <span className="text-sm font-medium">
+                        {subapp.name ?? subapp.key}
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <SubappIcon type={subapp.type} />
+                        <span className="text-xs text-muted-foreground">
+                          {TYPE_LABELS[subapp.type] ?? subapp.type}
+                        </span>
+                      </div>
+                    </div>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuGroup>
+            </>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
     )
   }
 
