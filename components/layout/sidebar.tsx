@@ -107,7 +107,7 @@ interface SidebarNavProps {
 
 export function SidebarNav({ role, onNavigate, subAppKey, subappType }: SidebarNavProps) {
   const pathname = usePathname()
-  const items = subAppKey && role === 'user'
+  const items = subAppKey
     ? subappType === 'foundation'
       ? getFoundationNavItems(subAppKey)
       : getSchoolNavItems(subAppKey)
