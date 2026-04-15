@@ -538,6 +538,94 @@ export async function getActiveStudentsForPayment(
 }
 
 /**
+ * Mengambil detail pembayaran SPP berdasarkan ID.
+ */
+export async function getFeePaymentById(
+  id: string,
+  subAppKey?: string,
+): Promise<ActionResult<FeePaymentRow>> {
+  let scopedInstituteId: string | undefined
+
+  if (subAppKey) {
+    const { subapp } = await requireSubappAccess(subAppKey)
+    if (subapp.type !== 'school') {
+      return { success: false, error: 'Akses ditolak. Halaman ini hanya untuk sub-aplikasi sekolah.' }
+    }
+    scopedInstituteId = subapp.instituteId ?? undefined
+  } else {
+    await requireRole(['superadmin'])
+  }
+
+  if (!id) {
+    return { success: false, error: 'ID pembayaran tidak valid.' }
+  }
+
+  try {
+    const rows = await db
+      .select({
+        id: feePayments.id,
+        studentId: feePayments.studentId,
+        studentName: students.name,
+        studentNumber: students.studentNumber,
+        feeId: feePayments.feeId,
+        feeType: fees.feeType,
+        feeYear: fees.year,
+        feeSemester: fees.semester,
+        feeAmount: fees.amount,
+        amountPaid: feePayments.amountPaid,
+        paymentMethod: feePayments.paymentMethod,
+        receipt: feePayments.receipt,
+        receiptFile: feePayments.receiptFile,
+        status: feePayments.status,
+        paidDatetime: feePayments.paidDatetime,
+        studentInstituteId: students.instituteId,
+        createdAt: feePayments.createdAt,
+        updatedAt: feePayments.updatedAt,
+      })
+      .from(feePayments)
+      .innerJoin(students, eq(feePayments.studentId, students.id))
+      .innerJoin(fees, eq(feePayments.feeId, fees.id))
+      .where(eq(feePayments.id, id))
+      .limit(1)
+
+    const row = rows[0]
+    if (!row) {
+      return { success: false, error: 'Data pembayaran tidak ditemukan.' }
+    }
+
+    // Data isolation: pastikan pembayaran milik institusi yang benar
+    if (scopedInstituteId && row.studentInstituteId !== scopedInstituteId) {
+      return { success: false, error: 'Akses ditolak.' }
+    }
+
+    return {
+      success: true,
+      data: {
+        id: row.id,
+        studentId: row.studentId,
+        studentName: row.studentName,
+        studentNumber: row.studentNumber,
+        feeId: row.feeId,
+        feeType: row.feeType,
+        feeYear: row.feeYear,
+        feeSemester: row.feeSemester,
+        feeAmount: row.feeAmount,
+        amountPaid: row.amountPaid,
+        paymentMethod: row.paymentMethod,
+        receipt: row.receipt ?? null,
+        receiptFile: row.receiptFile ?? null,
+        status: row.status,
+        paidDatetime: row.paidDatetime,
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+      },
+    }
+  } catch {
+    return { success: false, error: 'Gagal mengambil data pembayaran. Silakan coba lagi.' }
+  }
+}
+
+/**
  * Mengambil daftar tahun fee untuk filter.
  */
 export async function getFeeYears(subAppKey?: string): Promise<ActionResult<number[]>> {

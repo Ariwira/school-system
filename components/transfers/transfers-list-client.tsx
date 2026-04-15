@@ -1,13 +1,12 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { PlusIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { FilterSelect } from '@/components/data-table/filter-select'
 import { TransfersTable } from './transfers-table'
-import { CreateTransferSheet } from './create-transfer-sheet'
 import { getTransfers } from '@/actions/transfer.actions'
 import type { TransferRow, TransferStatus, TransferMethod } from '@/lib/validations/transfer'
 
@@ -46,6 +45,7 @@ export function TransfersListClient({
   basePath,
 }: TransfersListClientProps) {
   const searchParams = useSearchParams()
+  const router = useRouter()
 
   const statusFilter = searchParams.get('status') ?? 'all'
   const directionFilter = searchParams.get('direction') ?? 'all'
@@ -55,7 +55,6 @@ export function TransfersListClient({
   const [data, setData] = useState<TransferRow[]>([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
-  const [sheetOpen, setSheetOpen] = useState(false)
 
   const perPage = 10
 
@@ -90,11 +89,6 @@ export function TransfersListClient({
     fetchData()
   }, [fetchData])
 
-  function handleFormSuccess() {
-    setSheetOpen(false)
-    fetchData()
-  }
-
   return (
     <div className="space-y-4">
       {/* Toolbar */}
@@ -122,7 +116,7 @@ export function TransfersListClient({
           />
         </div>
 
-        <Button onClick={() => setSheetOpen(true)}>
+        <Button onClick={() => router.push(basePath + '/new')}>
           <PlusIcon className="size-4 mr-2" />
           Buat Transfer
         </Button>
@@ -146,15 +140,6 @@ export function TransfersListClient({
           basePath={basePath}
         />
       )}
-
-      {/* Sheet form buat transfer */}
-      <CreateTransferSheet
-        open={sheetOpen}
-        onOpenChange={setSheetOpen}
-        onSuccess={handleFormSuccess}
-        subAppKey={subAppKey}
-        scopedInstituteId={scopedInstituteId}
-      />
     </div>
   )
 }
